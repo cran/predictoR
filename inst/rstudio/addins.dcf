@@ -1,0 +1,4 @@
+Name: PredictoR
+Description: Shiny PredictoR
+Binding: init_predictor
+Interactive: true
