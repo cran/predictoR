@@ -10,14 +10,15 @@
 #'  }
 init_predictor <- function(){
   if(package_version(unclass(packageDescription("shiny"))$Version) < package_version("1.2.0") ){
-    installed.packages("shiny")
-  }
-  rm(envir = .GlobalEnv, list = ls(envir = .GlobalEnv))
-  Sys.setenv("LANGUAGE" = "ES")
-  if(toupper(.Platform$OS.type) != "WINDOWS"){
-    options(encoding = "utf8")
+    install.packages("shiny")
   }else{
-    options(encoding = "UTF-8")
+    rm(envir = .GlobalEnv, list = ls(envir = .GlobalEnv))
+    Sys.setenv("LANGUAGE" = "ES")
+    if(toupper(.Platform$OS.type) != "WINDOWS"){
+      options(encoding = "utf8")
+    }else{
+      options(encoding = "UTF-8")
+    }
+    shiny::runApp(appDir = system.file("application", package = "predictoR"), launch.browser = TRUE)
   }
-  shiny::runApp(appDir = system.file("application", package = "predictoR"), launch.browser = TRUE)
 }

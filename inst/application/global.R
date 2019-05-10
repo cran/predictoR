@@ -3,11 +3,13 @@
 
 #Crear la matriz de confucíon
 crear.matriz.conf <- function(real, prediccion, num.clases = 2){
-  MC <- table(real,prediccion)
+  MC <- table(real, prediccion)
   if (dim(MC)[2] < num.clases) {
     for (i in 1:(num.clases-dim(MC)[2])) {
       MC <- cbind(MC, 0)
     }
+    colnames(MC) <- levels(real)
+    row.names(MC) <- levels(real)
   }
   return(MC)
 }
@@ -15,6 +17,10 @@ crear.matriz.conf <- function(real, prediccion, num.clases = 2){
 #Numero de categorias de la variable a predecir
 num.categorias.pred <- function(){
   return(length(levels(datos.aprendizaje[,variable.predecir])))
+}
+
+num.categorias.pred.np <- function(){
+  return(length(levels(datos.aprendizaje.completos[,variable.predecir.pn])))
 }
 
 #Colores de ggplot2
@@ -429,7 +435,7 @@ modelo.cor <- function(data = "datos"){
 
 #Codigo de la generacion de correlaciones
 correlaciones <- function(metodo = 'circle', tipo = "lower"){
-  return(paste0("corrplot(correlacion, method='", metodo,"', shade.col=NA, tl.col='black',
+  return(paste0("corrplot::corrplot(correlacion, method='", metodo,"', shade.col=NA, tl.col='black',
                 tl.srt=20, addCoef.col='black', order='AOE', type = '", tipo, "')"))
 }
 
@@ -439,9 +445,12 @@ correlaciones <- function(metodo = 'circle', tipo = "lower"){
 dist.x.predecir <- function(data, variable, variable.predecir) {
   data. <- data %>%
     dplyr::group_by_(variable, variable.predecir) %>%
-    dplyr::summarise(count = n()) %>%
-    dplyr::group_by_(variable) %>%
-    dplyr::mutate(prop = round(count/sum(count),4))
+    dplyr::summarise(count = n())
+
+  if(variable != variable.predecir){
+    data. <-   data. %>% dplyr::group_by_(variable)
+  }
+  data. <- data. %>% dplyr::mutate(prop = round(count/sum(count),4))
   return(data.)
 }
 
@@ -454,7 +463,7 @@ label.size <- ifelse(label.size < 3, 3, label.size)
 data. <- dist.x.predecir(datos, '",variable,"', '",var.predecir,"')
 ggplot(data., aes(fct_reorder(data.[['",variable,"']], count, .desc = T), prop, fill = data.[['",var.predecir,"']])) +
 geom_bar(stat = 'identity') +
-geom_text(aes(label = paste0(count, ' (', scales::percent(prop), ')'), y = prop), color = 'gray90',
+geom_text(aes(label = paste0(count, ' (', scales::percent(prop), ')'), y = prop), color = 'black',
 position = position_stack(vjust = .5), size = label.size) +
 theme_minimal() +
 theme(text = element_text(size=15)) +
@@ -474,7 +483,7 @@ label.size <- ifelse(label.size < 3, 3, label.size)
 data. <- dist.x.predecir(datos, '",var.predecir,"','",var.predecir,"')
 ggplot(data., aes(x='', y=prop, fill= data.[['",var.predecir,"']]))+
 geom_bar(width = 1, stat = 'identity')+
-geom_text(aes(label = paste0(count, ' (', scales::percent(prop), ')'), y = prop ), color = 'gray90',
+geom_text(aes(label = paste0(count, ' (', scales::percent(prop), ')'), y = prop ), color = 'black',
 position = position_stack(vjust = .5), size = label.size)+
 theme_minimal() +
 theme(text = element_text(size=15)) +
@@ -576,7 +585,9 @@ svm.plot <- function(variables, resto, kernel = "linear"){
   }
   l <- paste0("list(",paste0(l,collapse = ","),")")
   s <- paste0("modelo.svm.temp <- svm(",variable.predecir,"~",variables[1],"+",variables[2],", data = datos.aprendizaje, kernel = '",kernel,"')")
-  return(paste0(s,"\nplot(modelo.svm.temp, datos, ",variables[1],"~",variables[2],", slice = ",l,")"))
+  color <- length(unique(datos.aprendizaje[,variable.predecir]))
+  color <- as.string.c(gg_color_hue(color))
+  return(paste0(s,"\nplot(modelo.svm.temp, datos, ",variables[1],"~",variables[2],", slice = ",l,", col = ",color,")"))
 }
 
 
@@ -716,7 +727,7 @@ boosting.plot.import <- function(type = "discrete"){
 }
 
 rules.boosting <- function(type = "discrete", i){
-  return(paste0("asRules(modelo.boosting.",type,"$model$trees[[",i,"]])"))
+  return(paste0("rules(modelo.boosting.",type,"$model$trees[[",i,"]])"))
 }
 
 varP <- function (x, plot.it = TRUE, type = c("none", "scores"), max.var.show = 30, ...){
@@ -765,6 +776,59 @@ varP <- function (x, plot.it = TRUE, type = c("none", "scores"), max.var.show = 
     attr(t1, "names") <- nm[vars]
     return(t1)
   }
+}
+
+rules <- function (model, compact = FALSE, ...){
+  if (!inherits(model, "rpart"))
+    stop(rattle:::Rtxt("Not a legitimate rpart tree"))
+  rtree <- length(attr(model, "ylevels")) == 0
+  target <- as.character(attr(model$terms, "variables")[2])
+  frm <- model$frame
+  names <- row.names(frm)
+  ylevels <- attr(model, "ylevels")
+  ds.size <- model$frame[1, ]$n
+  if (rtree)
+    ordered <- rev(sort(frm$n, index = TRUE)$ix)
+  else ordered <- rev(sort(frm$yval2[, 5], index = TRUE)$ix)
+  for (i in ordered) {
+    if (frm[i, 1] == "<leaf>") {
+      if (rtree)
+        yval <- frm[i, ]$yval
+      else {
+        yval <- as.numeric(ylevels[frm[i, ]$yval])
+        yval <- ifelse(yval == -1, 1, 2)
+        yval <- levels(datos.aprendizaje[,variable.predecir])[yval]
+      }
+      cover <- frm[i, ]$n
+      pcover <- round(100 * cover/ds.size)
+      if (!rtree)
+        prob <- frm[i, ]$yval2[, 5]
+      cat("\n")
+      pth <- rpart::path.rpart(model, nodes = as.numeric(names[i]),
+                               print.it = FALSE)
+      pth <- unlist(pth)[-1]
+      if (!length(pth))
+        pth <- "True"
+      if (compact) {
+        cat(sprintf("R%03s ", names[i]))
+        if (rtree)
+          cat(sprintf("[%2.0f%%,%0.2f]", pcover, prob))
+        else cat(sprintf("[%2.0f%%,%0.2f]", pcover, prob))
+        cat(sprintf(" %s", pth), sep = "")
+      }
+      else {
+        cat(sprintf(rattle:::Rtxt("Rule number: %s "), names[i]))
+        if (rtree){
+          cat(sprintf("[%s=%s cover=%d (%.0f%%)]\n", target, yval, cover, pcover))
+        }else{
+          cat(sprintf("[%s=%s cover=%d (%.0f%%) prob=%0.2f]\n", target, yval, cover, pcover, prob))
+        }
+        cat(sprintf("  %s\n", pth), sep = "")
+      }
+    }
+  }
+  cat("\n")
+  invisible(ordered)
 }
 
 # Pagina de BAYES ---------------------------------------------------------------------------------------------------------
@@ -1011,6 +1075,8 @@ xgb.plot.importance <- function (importance_matrix = NULL, top_n = NULL, measure
   }
   importance_matrix <- importance_matrix[, `:=`(Importance,
                                                 sum(get(measure))), by = Feature]
+  importance_matrix <- importance_matrix[, `:=`(Importance, mean(get("Importance"))), by = Feature]
+  importance_matrix <- importance_matrix[!duplicated(importance_matrix[,'Feature']),]
   importance_matrix <- importance_matrix[order(-abs(Importance))]
   if (!is.null(top_n)) {
     top_n <- min(top_n, nrow(importance_matrix))
@@ -1041,8 +1107,98 @@ xgb.plot.importance <- function (importance_matrix = NULL, top_n = NULL, measure
 
 #Codigo del grafico de importancia de variables
 xgb.varImp <- function(booster = "gbtree"){
-  paste0("variables.importantes <- xgb.importance(feature_names = colnames(datos.aprendizaje), model = modelo.xgb.",booster,")\n",
-         "xgb.plot.importance(importance_matrix = variables.importantes, col = ",as.string.c(gg_color_hue(ncol(datos.aprendizaje))),")")
+  paste0("nombres <- modelo.xgb.",booster,"$feature_names\n",
+         "variables.importantes <- xgb.importance(feature_names = nombres, model = modelo.xgb.",booster,")\n",
+         "xgb.plot.importance(importance_matrix = variables.importantes, col = ",as.string.c(gg_color_hue(ncol(datos.aprendizaje) - 1)),")")
+}
+
+# Pagina de RL --------------------------------------------------------------------------------------------------------------
+
+
+#Crea el modelo RL
+rl.modelo <- function(){
+  return(paste0("modelo.rl <<- glm(",variable.predecir,"~., data = datos.aprendizaje, family = binomial)"))
+}
+
+rl.modelo.np <- function(){
+  return(paste0("modelo.nuevos <<- glm(",variable.predecir.pn,"~., data = datos.aprendizaje.completos, family = binomial)"))
+}
+
+#Codigo de la prediccion de rl
+rl.prediccion <- function() {
+  labels <- rownames(contrasts(datos[,variable.predecir]))
+  return(paste0("prediccion.rl <<- predict(modelo.rl, datos.prueba, type = 'response')\n",
+                "prediccion.rl <<- ifelse(prediccion.rl > 0.5,'",labels[2],"','",labels[1],"')"))
+}
+
+rl.prediccion.np <- function() {
+  labels <- rownames(contrasts(datos.aprendizaje.completos[,variable.predecir.pn]))
+  return(paste0("predic.nuevos <<- predict(modelo.nuevos, datos.prueba.completos, type = 'response')\n",
+                "predic.nuevos <<- ifelse(predic.nuevos > 0.5,'",labels[2],"','",labels[1],"')"))
+}
+
+#Codigo de la matriz de confucion de rl
+rl.MC <- function(){
+  return(paste0("real <- datos.prueba$",variable.predecir,"\n",
+                "prediccion <- prediccion.rl\n",
+                "MC.rl <<- crear.matriz.conf(real, prediccion,",num.categorias.pred(),")\n"))
+}
+
+# Pagina de RLR -------------------------------------------------------------------------------------------------------------
+
+rlr.type <- function(){
+  ifelse(input$alpha.rlr == 0, "ridge", "lasso")
+}
+
+#Crea el modelo RL
+rlr.modelo <- function(variable.pr = NULL, alpha = 0, escalar = TRUE){
+  return(paste0("x <- model.matrix(",variable.pr,"~., datos.aprendizaje)[, -1]\n",
+                "y <- datos.aprendizaje[, '",variable.pr,"']\n",
+                "modelo.rlr.",rlr.type()," <<- glmnet(x, y, standardize = ",escalar,", alpha = ",alpha,",family = 'multinomial')"))
+}
+
+rlr.modelo.np <- function(alpha = 0, escalar = TRUE, manual = FALSE, landa = 2){
+  landa <- ifelse(manual,"",paste0("cv.glm.nuevos <<- cv.glmnet(x, y, standardize = ",escalar,", alpha = ",alpha,",family = 'multinomial')\n"))
+  return(paste0("x <- model.matrix(",variable.predecir.pn,"~., datos.aprendizaje.completos)[, -1]\n",
+                "y <- datos.aprendizaje.completos[, '",variable.predecir.pn,"']\n",
+                landa,
+                "modelo.nuevos <<- glmnet(x, y,standardize = ",escalar,", alpha = ",alpha,",family = 'multinomial')"))
+}
+
+select.landa <- function(variable.pr = NULL, alpha = 0, escalar = TRUE){
+  paste0("x <- model.matrix(",variable.pr,"~., datos.aprendizaje)[, -1]\n",
+         "y <- datos.aprendizaje[, '",variable.pr,"']\n",
+         "cv.glm.",rlr.type()," <<- cv.glmnet(x, y, standardize = ",escalar,", alpha = ",alpha,",family = 'multinomial')")
+}
+
+plot.coeff.landa <- function(landa = NULL){
+  landa <- ifelse(is.null(landa),paste0("cv.glm.",rlr.type(),"$lambda.min"), landa)
+  paste0("plot(modelo.rlr.",rlr.type(),", 'lambda', label = TRUE)\n",
+         "abline(v = log(",landa,"), col = 'blue', lwd = 2, lty = 3)")
+}
+
+#Codigo de la prediccion de rlr
+rlr.prediccion <- function(variable.pr = NULL,landa = NULL) {
+  landa <- ifelse(is.null(landa),paste0("cv.glm.",rlr.type(),"$lambda.min"), landa)
+  paste0("prueba <- model.matrix(",variable.pr,"~., datos.prueba)[, -1]\n",
+         "prediccion.rlr.",rlr.type()," <<- predict(modelo.rlr.",rlr.type(),", prueba,",
+         "s = ",landa,", type='class')")
+}
+
+rlr.prediccion.np <- function(alpha = 0, escalar = TRUE, manual = FALSE, landa = 2) {
+  landa <- ifelse(manual, landa, "cv.glm.nuevos$lambda.min")
+  paste0("dp <- datos.prueba.completos\n",
+         "dp[, '",variable.predecir.pn,"'] <- 0\n",
+         "prueba <- model.matrix(",variable.predecir.pn,"~., dp)[, -1]\n",
+         "predic.nuevos <<- predict(modelo.nuevos, prueba,",
+         "s = ",landa,", type='class')")
+}
+
+#Codigo de la matriz de confucion de rlr
+rlr.MC <- function(){
+  return(paste0("real <- datos.prueba$",variable.predecir,"\n",
+                "prediccion <- prediccion.rlr.",rlr.type(),"\n",
+                "MC.rlr.",rlr.type()," <<- crear.matriz.conf(real, prediccion,",num.categorias.pred(),")\n"))
 }
 
 # Pagina de TABLA COMPARATIVA -----------------------------------------------------------------------------------------------
@@ -1064,14 +1220,16 @@ plotROC <- function(sel) {
   colores <- c()
   adicionar <- FALSE
   index <- 1
-  scores <- scores[sort(names(scores))]
-  SCORES <- scores[names(scores) %in% sel]
+
+  nombres.tr <- unlist(lapply(names(scores), split_name))
+  SCORES <- scores[nombres.tr %in% sel]
+  nombres.tr <- nombres.tr[nombres.tr %in% sel]
 
   if(length(SCORES) == 0) {
     return(NULL)
   }
 
-  correcion.xgb <- names(SCORES)[grepl("XGB - ", names(SCORES))]
+  correcion.xgb <- names(SCORES)[grepl("xgb", names(SCORES))]
 
   for (i in correcion.xgb) {
     SCORES[[i]] <- data.frame(1-SCORES[[i]],SCORES[[i]])
@@ -1079,13 +1237,19 @@ plotROC <- function(sel) {
     SCORES[[i]] <- as.matrix(SCORES[[i]])
   }
 
-  if(!is.null(SCORES[["Redes Neuronales"]])){
-    colnames(SCORES[["Redes Neuronales"]]) <- levels(clase)
+  if(any("rl" %in% names(SCORES))){
+    SCORES[["rl"]] <- data.frame(1-SCORES[["rl"]],SCORES[["rl"]])
+    colnames(SCORES[["rl"]]) <- levels(clase)
+    SCORES[["rl"]] <- as.matrix(SCORES[["rl"]])
+  }
+
+  if(!is.null(SCORES[["nn"]])){
+    colnames(SCORES[["nn"]]) <- levels(clase)
   }
 
   for (nombre in names(SCORES)) {
     if(is.numeric(SCORES[[nombre]])){
-      plotROCInd(SCORES[[nombre]][,which(levels(clase) == input$roc.sel)],clase,adicionar, col[index])
+      plotROCInd(as.data.frame(SCORES[[nombre]])[,which(levels(clase) == input$roc.sel)],clase, adicionar, col[index])
     }else{
       if(is.factor(SCORES[[nombre]])){
         plotROCInd(attributes(SCORES[[nombre]])$probabilities[,input$roc.sel],clase,adicionar,col[index])
@@ -1093,7 +1257,7 @@ plotROC <- function(sel) {
     }
     adicionar <- TRUE
     colores <- c(colores, col[index])
-    nombres <- c(nombres, nombre)
+    nombres <- c(nombres, nombres.tr[index])
     index <- index + 1
   }
   legend(x=0.85, y=0.8, legend = nombres, bty = "n", pch=19 ,
@@ -1165,6 +1329,9 @@ ordenar.reporte <- function(lista){
              "modelo.nn", "modelo.nn.graf", "pred.nn", "mc.nn", "ind.nn",
              combinar.nombres(c("modelo.xgb", "modelo.xgb.graf", "pred.xgb", "mc.xgb", "ind.xgb"),
                               c("gbtree", "gblinear", "dart")),
+             "modelo.rl","pred.rl", "mc.rl","ind.rl",
+             combinar.nombres(c("modelo.rlr","posib.landa.rlr", "gcoeff.landa.rlr", "pred.rlr", "mc.rlr", "ind.rlr"),
+                              c("ridge", "lasso")),
              "tabla.comparativa", "roc")
 
   orden <- c(orden, nombres[!(nombres %in% orden)])
@@ -1292,7 +1459,7 @@ cod.poder.num <- NULL
 
 # -------------------  Modelos
 
-MCs <- list()
+IndicesM <- list()
 areas <- list()
 scores <- list()
 

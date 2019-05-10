@@ -16,11 +16,11 @@
 }
 
 /*tamaño minimo para el campo de texto de las matrices de confusion*/
-#txtknnMC, #txtSvmMC, #txtDtMC, #txtRfMC, #txtBoostingMC,  #txtbayesMC, #txtxgbMC, #txtnnMC{
+#txtknnMC, #txtSvmMC, #txtDtMC, #txtRfMC, #txtBoostingMC,  #txtbayesMC, #txtxgbMC, #txtnnMC,  #txtrlMC,  #txtrlrMC{
   min-height: 100px !important;
 }
 
-#rfPrediTable, #knnPrediTable, #svmPrediTable, #dtPrediTable, #rfPrediTable, #boostingPrediTable, #bayesPrediTable, #nnPrediTable, #xgbPrediTable {
+div[id$="PrediTable"]{
   min-height: 370px !important;
 }
 
@@ -488,6 +488,9 @@ input[type="checkbox"]:hover:before {
   color: #CBB051;
 }
 
+.sidebar-menu li ul li a{
+    font-size: 12px;
+}
 
 
 

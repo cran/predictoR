@@ -1,2 +1,2 @@
-importFrom("utils", "installed.packages", "packageDescription")
+importFrom("utils", "installed.packages", "packageDescription", "install.packages")
 export(init_predictor)

@@ -7,7 +7,7 @@ dataP;Datos de Prueba;Test Sample
 configuraciones;Configuraciones;Settings
 basico;Estadísticas Básicas;Basic Statistics
 poderpred;Poder Predictivo;Predictive Power
-aprendizaje;Apendizaje Supervisado;Supervised Learning
+aprendizaje;Aprendizaje Supervisado;Supervised Learning
 comparacion;Comparación de Modelos;Model Comparison
 predicnuevos;Predicción Individuos Nuevos;Predict New Cases
 pred;Predicción;Prediction
@@ -231,3 +231,14 @@ redPlot;Red Neuronal;Neural Network
 bigPlot;El gráfico es demasiado grande para desplegarse;The graph is too large to display
 errornum;Se necesitan variables numéricas  para esta parte.;You need numerical variables for this part.
 errorcat;Se necesitan variables categóricas  para esta parte.;You need categorical variables for this part.
+rl;Regresión Logística;Logistic Regression
+rlr;Regresión Logística Penalizada;Penalized Logistic Regression
+posibLanda;Posibles lambda;Possible lambda
+coeff;Coeficientes;Coefficients
+gcoeff;Coeficientes y lambda;Coefficients and lambda
+automatico;Automatico;Automatic
+landa;Mejor Lambda:;Better Lambda:
+aROC;Área de ROC;ROC Area
+limitModel;Este modelo solo se puede aplicar a variables binarias;This model can only be applied to binary variables
+ErrorModelo;Aún no genera el modelo;The model has not yet been generated
+ErrorDatosPN;Aún no carga los datos a predecir;It still doesn't load the data to predict

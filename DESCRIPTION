@@ -1,18 +1,18 @@
 Title: Predictive Data Analysis System
 Package: predictoR
 Type: Package
-Version: 1.0.4
+Version: 1.0.9
 Author: Oldemar Rodriguez R. with contributions from Diego Jimenez A. and Andres Navarro D.
 Maintainer: Oldemar Rodriguez <oldemar.rodriguez@ucr.ac.cr>
 Depends: R (>= 3.5)
-Imports: shinyAce (>= 0.3.3), shinydashboardPlus (>= 0.6.0),
-        shinyWidgets (>= 0.4.4), shinyjs (>= 1.0), flexdashboard (>=
-        0.5.1.1), tidyverse (>= 1.2.1), neuralnet (>= 1.44.2), rpart
-        (>= 4.1-13), rattle (>= 5.2.0), xgboost (>= 0.81.0.1), ada (>=
-        2.0-5), zip (>= 1.0.0), colourpicker (>= 1.0), DT (>= 0.5),
+Imports: shiny (>= 1.2.0), shinyAce (>= 0.3.3), shinydashboardPlus (>=
+        0.6.0), shinyWidgets (>= 0.4.4), shinyjs (>= 1.0),
+        flexdashboard (>= 0.5.1.1), tidyverse (>= 1.2.1), neuralnet (>=
+        1.44.2), rpart (>= 4.1-13), rattle (>= 5.2.0), xgboost (>=
+        0.81.0.1), ada (>= 2.0-5), colourpicker (>= 1.0), DT (>= 0.5),
         randomForest (>= 4.6-14), e1071 (>= 1.7-0.1), kknn (>= 1.3.1),
-        scatterplot3d (>= 0.3-41), corrplot (>= 0.84), ROCR (>= 1.0-7)
-Suggests: shiny
+        glmnet (>= 2.0-16), corrplot (>= 0.84), ROCR (>= 1.0-7), zip
+        (>= 1.0.0)
 Description: Perform a supervised data analysis on a database through a 'shiny' graphical interface. It includes methods such as K-Nearest Neighbors, Decision Trees, ADA Boosting, Extreme Gradient Boosting, Random Forest, Neural Networks, Deep Learning, Support Vector Machines and Bayesian Methods.
 License: GPL (>= 2)
 Encoding: UTF-8
@@ -20,6 +20,6 @@ LazyData: true
 URL: http://www.promidat.com
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2019-02-14 17:02:16 UTC; promidat04
+Packaged: 2019-05-09 20:08:29 UTC; promidat04
 Repository: CRAN
-Date/Publication: 2019-03-03 11:20:03 UTC
+Date/Publication: 2019-05-10 05:20:03 UTC
