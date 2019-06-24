@@ -1,7 +1,7 @@
 Title: Predictive Data Analysis System
 Package: predictoR
 Type: Package
-Version: 1.0.9
+Version: 1.1.0
 Author: Oldemar Rodriguez R. with contributions from Diego Jimenez A. and Andres Navarro D.
 Maintainer: Oldemar Rodriguez <oldemar.rodriguez@ucr.ac.cr>
 Depends: R (>= 3.5)
@@ -20,6 +20,6 @@ LazyData: true
 URL: http://www.promidat.com
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2019-05-09 20:08:29 UTC; promidat04
+Packaged: 2019-06-24 22:08:08 UTC; promidat04
 Repository: CRAN
-Date/Publication: 2019-05-10 05:20:03 UTC
+Date/Publication: 2019-06-24 22:50:03 UTC
