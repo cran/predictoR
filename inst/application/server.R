@@ -158,7 +158,7 @@ shinyServer(function(input, output, session) {
                                 "landa")))
   }
 
-  # CONFIGURACIONES IICIALES -----------------------------------------------------------------------------------------------
+  # CONFIGURACIONES INICIALES -----------------------------------------------------------------------------------------------
 
   source("global.R", local = T)
   source("utils.R", local = T)

@@ -204,11 +204,11 @@ code.carga <- function(nombre.filas = T, ruta = NULL, separador = ";", sep.decim
     ruta <-  gsub("\\", "/", ruta, fixed=TRUE)
   }
   if(nombre.filas){
-    return(paste0( d.o ," <<- read.table('", ruta, "', header=",
+    return(paste0( d.o ," <<- read.table('", ruta, "', stringsAsFactors = T, header=",
                   encabezado, ", sep='", separador, "', dec = '", sep.decimal, "', row.names = 1) \n",d," <<- ",d.o))
   } else {
-    return(paste0(d.o, "<<- read.table('", ruta, "', header=", encabezado, ", sep='", separador, "', dec = '", sep.decimal,
-                  "') \n",d," <<- ",d.o))
+    return(paste0(d.o, "<<- read.table('", ruta, "', stringsAsFactors = T, header=", encabezado,
+                  ", sep='", separador, "', dec = '", sep.decimal, "') \n",d," <<- ",d.o))
   }
 }
 
@@ -252,7 +252,8 @@ particion.code <- function(data = "datos", p = "0.5", variable = NULL, semilla =
   variable.predecir <<- variable
   semilla <- ifelse(is.numeric(semilla), semilla, 5)
   codigo <- ifelse(perm.semilla, paste0("set.seed(",semilla,")"), "rm(.Random.seed, envir = globalenv())")
-  codigo <- paste0(codigo,"\nvariable.predecir <<- '",variable,"'\nparticion <- createDataPartition(datos$",variable,", p = ",p/100,", list = FALSE)\n
+  codigo <- paste0(codigo,"\nvariable.predecir <<- '",variable,
+  "'\nparticion <- sample(1:nrow(datos),size = nrow(datos)*",p/100,", replace = FALSE)\n
 datos.prueba <<- datos[-particion,]\ndatos.aprendizaje <<- datos[particion,]")
   codigo <- ifelse(perm.semilla, paste0(codigo, "\nset.seed(",semilla,")"),codigo)
   return(codigo)
@@ -443,12 +444,13 @@ correlaciones <- function(metodo = 'circle', tipo = "lower"){
 
 #Calcula proporciones
 dist.x.predecir <- function(data, variable, variable.predecir) {
-  data. <- data %>%
-    dplyr::group_by_(variable, variable.predecir) %>%
-    dplyr::summarise(count = n())
-
   if(variable != variable.predecir){
-    data. <-   data. %>% dplyr::group_by_(variable)
+    data. <- data %>%
+      dplyr::group_by_at(variable, variable.predecir) %>%
+      dplyr::summarise(count = n())
+  } else {
+    data. <- data %>% dplyr::group_by_at(variable) %>%
+      dplyr::summarise(count = n())
   }
   data. <- data. %>% dplyr::mutate(prop = round(count/sum(count),4))
   return(data.)
