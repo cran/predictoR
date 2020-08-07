@@ -445,15 +445,15 @@ correlaciones <- function(metodo = 'circle', tipo = "lower"){
 #Calcula proporciones
 dist.x.predecir <- function(data, variable, variable.predecir) {
   if(variable != variable.predecir){
-    data. <- data %>%
-      dplyr::group_by_at(variable, variable.predecir) %>%
+    data <- data %>%
+      dplyr::group_by_at(c(variable, variable.predecir)) %>%
       dplyr::summarise(count = n())
   } else {
-    data. <- data %>% dplyr::group_by_at(variable) %>%
+    data <- data %>% dplyr::group_by_at(variable) %>%
       dplyr::summarise(count = n())
   }
-  data. <- data. %>% dplyr::mutate(prop = round(count/sum(count),4))
-  return(data.)
+  data <- data %>% dplyr::mutate(prop = round(count/sum(count),4))
+  return(data)
 }
 
 #Hace la grafica de proporciones segun la variable predictiva
@@ -462,8 +462,8 @@ plot.code.dist.porc <- function(variable, var.predecir, colores = NA, label.size
   return(paste0("colores <- gg_color_hue(length(unique(datos[,'",var.predecir,"'])))
 label.size <- ",label.size," - length(unique(datos[,'",variable,"']))
 label.size <- ifelse(label.size < 3, 3, label.size)
-data. <- dist.x.predecir(datos, '",variable,"', '",var.predecir,"')
-ggplot(data., aes(fct_reorder(data.[['",variable,"']], count, .desc = T), prop, fill = data.[['",var.predecir,"']])) +
+data <- dist.x.predecir(datos, '",variable,"', '",var.predecir,"')
+ggplot(data, aes(fct_reorder(data[['",variable,"']], count, .desc = T), prop, fill = data[['",var.predecir,"']])) +
 geom_bar(stat = 'identity') +
 geom_text(aes(label = paste0(count, ' (', scales::percent(prop), ')'), y = prop), color = 'black',
 position = position_stack(vjust = .5), size = label.size) +
