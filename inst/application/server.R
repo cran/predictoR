@@ -61,12 +61,8 @@ shinyServer(function(input, output, session) {
   # Crea la tabla de comparacion entre prediccion y datos reales (datos de prueba)
   obj.predic <- function(predic.var = NULL){
     real <- datos.prueba[, variable.predecir]
-    if(is.numeric(predic.var)){
-      for(nom in unique(real)) {
-        nom.num <- unique(real)
-        nom.num <- as.numeric(nom.num)[nom.num == nom]
-        predic.var[predic.var==nom.num] <- nom
-      }
+    if(is.numeric(predic.var)) {
+      predic.var <- factor(predic.var, labels = levels(real))
     }
     real <- as.character(real)
     predi <- as.character(predic.var)
