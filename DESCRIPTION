@@ -1,7 +1,7 @@
 Title: Predictive Data Analysis System
 Package: predictoR
 Type: Package
-Version: 1.1.4
+Version: 1.1.5
 Author: Oldemar Rodriguez R. with contributions from Diego Jimenez A. and Andres Navarro D.
 Maintainer: Oldemar Rodriguez <oldemar.rodriguez@ucr.ac.cr>
 Depends: R (>= 3.5)
@@ -17,9 +17,9 @@ Description: Perform a supervised data analysis on a database through a 'shiny' 
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-URL: https://www.promidat.com
+URL: http://www.promidat.com
 RoxygenNote: 7.1.1
 NeedsCompilation: no
-Packaged: 2020-10-29 17:39:53 UTC; promidat05
+Packaged: 2021-03-01 22:33:36 UTC; promidat05
 Repository: CRAN
-Date/Publication: 2020-10-29 23:00:06 UTC
+Date/Publication: 2021-03-02 05:30:02 UTC

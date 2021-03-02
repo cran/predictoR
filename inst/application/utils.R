@@ -55,6 +55,13 @@ createDataPartition <- function (y, times = 1, p = 0.5, list = TRUE, groups = mi
   out
 }
 
+# crear.traslation <- function() {
+#   library(plyr)
+#   archivo <- read.table("diccionario.csv", header = TRUE, sep = ";", as.is = TRUE)
+#   translation <- dlply(archivo , .(key), function(s) key = as.list(s))
+#
+#   save(translation, file = "translation.bin")
+# }
 #Funciones tomadas del paquete PSYCH
 
 pairs.panels <- function (x, smooth = TRUE, scale = FALSE, density = TRUE, ellipses = TRUE,

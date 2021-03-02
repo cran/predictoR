@@ -670,8 +670,15 @@ rf.MC <- function(variable.p){
 }
 
 #Codigo del grafico de importancia de variables
-rf.plot <- function(){
-  return("ggVarImp(modelo.rf)")
+rf.plot <- function() {
+  return(paste0(
+    "aux <- data.frame(modelo.rf$importance)\n",
+    "aux <- aux[order(aux$MeanDecreaseAccuracy, decreasing = T), ]\n",
+    "aux$nombre <- row.names(aux)\n\n",
+    "ggplot(aux, aes(x = MeanDecreaseAccuracy, y = fct_reorder(nombre, MeanDecreaseAccuracy))) +\n",
+    "  geom_bar(stat = 'identity', fill = 'steelblue') + labs(y = '') +\n",
+    "  theme_minimal()\n"
+  ))
 }
 
 #Codigo del grafico de error del modelo

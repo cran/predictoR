@@ -151,16 +151,18 @@ shinyServer(function(input, output, session) {
                                 "cargarDatos","transDatos","seleParModel","generarM","variables","tipo",
                                 "activa","nn","xgb","selbooster","selnrounds","selectCapas","threshold",
                                 "stepmax","redPlot","rl","rlr","posibLanda","coeff","gcoeff","automatico",
-                                "landa")))
+                                "landa","eliminar", "imputar")))
   }
 
   # CONFIGURACIONES INICIALES -----------------------------------------------------------------------------------------------
+
+
 
   source("global.R", local = T)
   source("utils.R", local = T)
   load("www/translation.bin")
 
-  # actualizar.idioma()
+  #actualizar.idioma()
 
   options(shiny.maxRequestSize = 200 * 1024^2,
           width = 200,
@@ -219,6 +221,7 @@ shinyServer(function(input, output, session) {
     if (any(is.na(datos))) {
       tryCatch({
         codigo.na <- paste0(code.NA(deleteNA = input$deleteNA), "\n", "datos <<- datos.originales")
+       # codigo.na <- paste0(code.NA(deleteNA = input$deleteNA), "\n", "datos <<- datos.originales")
         isolate(exe(codigo.na))
         insert.report("na.delete",paste0("\n# Imputación de Datos\n```{r}\n",codigo.na,"\nhead(datos)\nstr(datos)\n```"))
       }, error = function(e) {
@@ -622,20 +625,20 @@ shinyServer(function(input, output, session) {
   observeEvent(c(input$loadButton, input$transButton), {
     output$plot.disp <- renderPlot({
       tryCatch({
-        cod.disp <<- updatePlot$disp
-        updateAceEditor(session, "fieldCodeDisp", value = cod.disp)
-        if(!is.null(cod.disp) && cod.disp != "") {
-          insert.report(paste0("dispersion.", paste(input$select.var, collapse = ".")),
-                        paste0("## Dispersión \n```{r}\n", cod.disp, "\n```"))
-        }
-        return(isolate(exe(cod.disp)))
-      }, error = function(e) {
         if(ncol(var.numericas(datos)) <= 1){
           error.variables(T)
         } else {
+          cod.disp <<- updatePlot$disp
+          updateAceEditor(session, "fieldCodeDisp", value = cod.disp)
+          if(!is.null(cod.disp) && cod.disp != "") {
+            insert.report(paste0("dispersion.", paste(input$select.var, collapse = ".")),
+                          paste0("## Dispersión \n```{r}\n", cod.disp, "\n```"))
+          }
+          return(isolate(exe(cod.disp)))
+        }
+      }, error = function(e) {
           showNotification(paste0("ERROR: ", e), duration = 10, type = "error")
           return(NULL)
-        }
       })
     })
   })
@@ -838,7 +841,7 @@ shinyServer(function(input, output, session) {
           insert.report(paste0("poder.cat.",input$sel.distribucion.poder),
                         paste0("## Distribución Según Variable Discriminante \n```{r}\n", cod.poder.cat, "\n```"))
         }else{
-          res <- error.variables(T)
+          res <- error.variables(F)
         }
         return(res)
       }, error = function(e) {
@@ -3445,6 +3448,7 @@ shinyServer(function(input, output, session) {
       codigo.na <- ""
       codigo.na <- paste0(code.NA(deleteNA = input$deleteNAnPred2,
                                   d.o = paste0("datos.prueba.completos")))
+
       datos.prueba.completos[,variable.predecir.pn] <<- NULL
       isolate(exe( codigo.na))
       datos.prueba.completos[,variable.predecir.pn] <<- NA

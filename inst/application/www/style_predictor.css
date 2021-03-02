@@ -130,29 +130,79 @@ table.spacing-xs tr th{
     background-color: #CBB051;
     color: white;
 }
+/* radioSwitch */
 
-input[type="radio"] {
+.radioGroupButtons {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+}
+
+.btn-radiogroup {
+    vertical-align: middle;
+    display: table-cell;
+    position: relative;
+    float: none;
+}
+
+.btn-radioswitch.active {
+    color: #fff;
+    background-color: #3c8dbc;
+    border-color: #367fa9;
+}
+
+.btn-radioswitch {
+    color: black;
+    background-color: #bbb;
+}
+
+.btn-radiogroup>.btn {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    position: relative;
+    float: left;
+    width: 100%;
+}
+
+.btn.radiobtn .radio-btn-icon-yes {
+	opacity: 0;
+	display: none;
+}
+.btn.radiobtn.active .radio-btn-icon-yes {
+	opacity: 1;
+	display: inline-block;
+}
+
+.btn.radiobtn.active .radio-btn-icon-no {
+	opacity: 0; display: none;
+}
+.btn.radiobtn .radio-btn-icon-no {
+	opacity: 1; display: inline-block;
+}
+
+/*input[type="radio"] {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  /* create custom radiobutton appearance */
   display: inline-block;
   width: 15px;
   height: 15px;
-  /* background-color only for content */
   background-clip: content-box;
   border: 3px solid white;
   background-color: #e7e6e7;
   border-radius: 50%;
 }
-
-/* appearance for checked radiobutton */
+ */
+/* appearance for checked radiobutton
 input[type="radio"]:checked {
   background-color: #CBB051;
 }
-
-input[type="checkbox"] {
-  -webkit-appearance:none;/* Hides the default checkbox style */
+*/
+/*input[type="checkbox"] {
+  -webkit-appearance:none; Hides the default checkbox style
   height:15px;
   width:15px;
   cursor:pointer;
@@ -161,7 +211,8 @@ input[type="checkbox"] {
   border-radius:2em;
   background-color:#900;
 }
-
+ */
+/*
 input[type="checkbox"]:checked {
  background-color:green;
 }
@@ -184,7 +235,7 @@ input[type="checkbox"]:checked:before {
 
 input[type="checkbox"]:hover:before {
 }
-
+*/
 .box.box-solid.box-primary > .box-header{
   background-color: #CBB051;
   color: white;
@@ -454,7 +505,7 @@ input[type="checkbox"]:hover:before {
   color: white;
   background-color: #CBB051;
 }
-
+/*
 .selectize-dropdown, .selectize-dropdown.form-control {
     height: auto;
     padding: 0;
@@ -487,7 +538,7 @@ input[type="checkbox"]:hover:before {
   background-color: #777777;
   color: #CBB051;
 }
-
+*/
 .sidebar-menu li ul li a{
     font-size: 12px;
 }

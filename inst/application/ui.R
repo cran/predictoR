@@ -77,6 +77,61 @@ radioButtonsTr <- function(inputId, label, values, names){
            tags$div(class="shiny-options-group", lapply(1:length(values), item )))
 }
 
+
+# Crea una radioButtons que puede cambiar de idioma
+radioSwitch <- function(id, label = NULL, names, values = NULL, val.def = T) {
+  if(is.null(values)) values <- c(TRUE, FALSE)
+  tags$div(
+    class = "form-group", `data-shinyjs-resettable-type`="RadioButtons",
+    `data-shinyjs-resettable-value` = names[1],
+    if(!is.null(label)) {
+      tags$label(class = "control-label", `for` = id, `data-id` = label)
+    },
+    tags$div(
+      class = "radioGroupButtons btn-group-container-sw", id = id, `data-toggle`="buttons",
+      tags$div(
+        class = "btn-radiogroup",
+        tags$button(
+          class = ifelse(val.def, "btn radiobtn btn-radioswitch active",
+                         "btn radiobtn btn-radioswitch"),
+          tags$span(class = "radio-btn-icon-yes", tags$i(class="glyphicon glyphicon-ok")),
+          tags$span(class = "radio-btn-icon-no", tags$i(class="glyphicon glyphicon-remove")),
+
+          if(val.def) {
+            tags$input(type="radio", autocomplete="off", name=id, value=values[1], checked = "checked",
+                       style = "position: absolute;clip: rect(0,0,0,0);pointer-events: none;")
+          } else {
+            tags$input(type="radio", autocomplete="off", name=id, value=values[1],
+                       style = "position: absolute;clip: rect(0,0,0,0);pointer-events: none;")
+          },
+
+          labelInput(names[[1]])
+        )
+      ),
+      tags$div(
+        class = "btn-radiogroup", role = "group",
+        tags$button(
+          class = ifelse(val.def,"btn radiobtn btn-radioswitch",
+                         "btn radiobtn btn-radioswitch active"),
+          tags$span(class = "radio-btn-icon-yes", tags$i(class="glyphicon glyphicon-ok")),
+          tags$span(class = "radio-btn-icon-no", tags$i(class="glyphicon glyphicon-remove")),
+
+          if(val.def) {
+            tags$input(type="radio", autocomplete="off", name=id, value=values[2],
+                       style = "position: absolute;clip: rect(0,0,0,0);pointer-events: none;")
+          } else {
+            tags$input(type="radio", autocomplete="off", name=id, value=values[2], checked = "checked",
+                       style = "position: absolute;clip: rect(0,0,0,0);pointer-events: none;")
+          },
+
+          labelInput(names[[2]])
+        )
+      )
+    )
+  )
+}
+
+
 #Genera los campos para las opciones y parametros
 tabsOptions <- function(botones = list(icon("gear"), icon("terminal")), widths = c(50, 100),
                         heights = c(100, 50), tabs.content = list("", "")){
@@ -156,7 +211,7 @@ mi.menu <- sidebarMenu(id = "principal",
               menu.aprendizaje.supervisado,
               menu.comparar,
               menu.prediccion.nuevos,
-              menu.reporte,
+              #menu.reporte,
               menu.info,
               hr(),
               menu.idioma,
@@ -180,10 +235,11 @@ load.page <- conditionalPanel(condition="($('html').hasClass('shiny-busy'))",
 panel.cargar.datos <- tabPanel(title = labelInput("cargar"), width = 12, solidHeader = FALSE, collapsible = FALSE, collapsed = FALSE,
                                checkboxInput('header', labelInput("header"), TRUE),
                                checkboxInput('rowname', labelInput("Rownames"), TRUE),
-                               radioButtonsTr('sep', "separador", c(';', ',', '\t'), c("puntocoma", "coma", "tab")),
-                               radioButtonsTr('dec', "separadordec", c(',', '.'), c("coma", "punto")),
-                               switchInput(inputId = "deleteNA", onStatus = "success", offStatus = "danger", value = T, width = "100%",
-                                           label = labelInput("eliminana"), onLabel = labelInput("si"), offLabel = labelInput("no"), labelWidth = "100%"),
+                               radioButtons('sep', labelInput("separador"), inline = T,choiceValues =  c(';', ',', '\t'),choiceNames = c(";", ",", "TAB")),
+                               radioButtons('dec', labelInput("separadordec"), inline = T,choiceValues = c(',', '.'),choiceNames =  c(",", ".")),
+                               #switchInput(inputId = "deleteNA", onStatus = "success", offStatus = "danger", value = T, width = "100%",
+                               #             label = labelInput("eliminana"), onLabel = labelInput("si"), offLabel = labelInput("no"), labelWidth = "100%"),
+                               radioSwitch(id = "deleteNA","eliminana", c("eliminar", "imputar")),
                                fileInput('file1', label =  labelInput("cargarchivo"), placeholder = "", buttonLabel =  labelInput("subir"), width = "100%",
                                          accept = c('text/csv', '.csv')),
                                actionButton("loadButton", labelInput("cargar"), width = "100%"),
@@ -618,7 +674,7 @@ codigo.rf  <- list(h4(labelInput("codigo")), hr(),
                                               value = "", height = "5vh", readOnly = T, autoComplete = "enabled")),
                    conditionalPanel("input.BoxRf == 'tabRfImp'",
                                     aceEditor("fieldCodeRfPlot", mode = "r", theme = "monokai",
-                                              value = "", height = "3vh", readOnly = T, autoComplete = "enabled")),
+                                              value = "", height = "15vh", readOnly = T, autoComplete = "enabled")),
                    conditionalPanel("input.BoxRf == 'tabRfPred'",
                                     aceEditor("fieldCodeRfPred", mode = "r", theme = "monokai",
                                               value = "", height = "3vh", readOnly = T, autoComplete = "enabled")),
@@ -1240,7 +1296,7 @@ pagina.info <- tabItem(tabName = "acercaDe",
                        infoBoxPROMiDAT(labelInput("copyright"), "PROMiDAT S.A.", icono = icon("copyright")),
                        infoBoxPROMiDAT(labelInput("info"), tags$a( href="https://www.promidat.com/", style = "color:white;",
                                                                    target = "_blank", "https://www.promidat.com"), icono = icon("info")),
-                       infoBoxPROMiDAT(labelInput("version"), "1.1.4", icono = icon("file-code-o")))
+                       infoBoxPROMiDAT(labelInput("version"), "1.1.5", icono = icon("file-code-o")))
 
 # PAGINA COMPLETA ---------------------------------------------------------------------------------------------------------
 
