@@ -1557,5 +1557,5 @@ cod.report <<- ""
 if(toupper(.Platform$OS.type) != "WINDOWS"){
   enc <<- "utf8"
 }else{
-  enc <<- "UTF-8"
+  enc <<- "utf8"
 }
