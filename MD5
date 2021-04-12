@@ -1,10 +1,10 @@
-6f595106e252c566a3aa1dde9507136c *DESCRIPTION
+b8df7fc02fb0c9089056fa4ec1099565 *DESCRIPTION
 72fc2f3e21a23834f7671889dcdc6c80 *NAMESPACE
 393b46d8afd8a978c8622c7ad4a9682c *R/init_predictor.R
 5828279a5d2065a80215456b1c263bfc *R/prueba.R
-473729ed06bc6162f43d874989acaf6e *inst/application/global.R
-3dda3458ad4b091545891408d95d315a *inst/application/server.R
-9f5a0355706824f0300b42e061526708 *inst/application/ui.R
+9bb718b0cc9dcdca15ee08c8fa953994 *inst/application/global.R
+62afb34d8e9ef1d741b0f2ebd669c017 *inst/application/server.R
+f5a14f9003fb01031acee04809603eb7 *inst/application/ui.R
 b1df948577349e5f54779c3618455d8e *inst/application/utils.R
 c856e901dd001b1d49788fb3cd15e69a *inst/application/www/Logo.png
 cadafa563ab01cd9a1360179bfdbdda1 *inst/application/www/Logo2.png

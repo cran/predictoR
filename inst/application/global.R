@@ -691,27 +691,27 @@ plot.rf.error <- function(){
 # Pagina de BOOSTING --------------------------------------------------------------------------------------------------------
 
 #Crea el modelo BOOSTING
-boosting.modelo <- function(variable.pr = NULL, iter = 50, maxdepth = 1, type = "discrete", minsplit = 1){
+boosting.modelo <- function(variable.pr = NULL, iter = 50, maxdepth = 1, minsplit = 1){
   iter <- ifelse(!is.numeric(iter), 50, iter)
   nu <- ifelse(!is.numeric(maxdepth) && maxdepth > 30, 15, maxdepth)
   minsplit <- ifelse(!is.numeric(minsplit), 1, minsplit)
-  codigo <- paste0("modelo.boosting.",type," <<- ada(",variable.pr,"~., data = datos.aprendizaje, iter = ",iter,", type = '",type,"',
+  codigo <- paste0("modelo.boosting <<- boosting(",variable.pr,"~., data = datos.aprendizaje, mfinal = ",iter,",
                    control = rpart.control(minsplit = ",minsplit,", maxdepth = ",maxdepth,"))")
   return(codigo)
 }
 
-boosting.modelo.np <- function(variable.pr = NULL, iter = 50, maxdepth = 1, type = "discrete", minsplit = 1){
+boosting.modelo.np <- function(variable.pr = NULL, iter = 50, maxdepth = 1, minsplit = 1){
   iter <- ifelse(!is.numeric(iter), 50, iter)
   nu <- ifelse(!is.numeric(maxdepth) && maxdepth > 30, 15, maxdepth)
   minsplit <- ifelse(!is.numeric(minsplit), 1, minsplit)
-  codigo <- paste0("modelo.nuevos <<- ada(",variable.pr,"~., data = datos.aprendizaje.completos, iter = ",iter,", type = '",type,"',
+  codigo <- paste0("modelo.nuevos <<- boosting(",variable.pr,"~., data = datos.aprendizaje.completos, mfinal = ",iter,",
                    control = rpart.control(minsplit = ",minsplit,", maxdepth = ",maxdepth,"))")
   return(codigo)
 }
 
 #Codigo de la prediccion de boosting
-boosting.prediccion <- function(variable.pr = NULL, type = "discrete") {
-  return(paste0("prediccion.boosting.",type," <<- predict(modelo.boosting.",type,", datos.prueba[,-which(colnames(datos.prueba) == '",variable.pr,"')])"))
+boosting.prediccion <- function(variable.pr = NULL) {
+  return(paste0("prediccion.boosting <<- predict(modelo.boosting, datos.prueba[,-which(colnames(datos.prueba) == '",variable.pr,"')])$class"))
 }
 
 boosting.prediccion.np <- function() {
@@ -719,72 +719,31 @@ boosting.prediccion.np <- function() {
 }
 
 #Codigo de la matriz de confucion de boosting
-boosting.MC <- function(variable.p, type = "discrete"){
+boosting.MC <- function(variable.p){
   return(paste0("real <- datos.prueba$",variable.p,"\n",
-                "prediccion <- prediccion.boosting.",type,"\n",
-                "MC.boosting.",type," <<- crear.matriz.conf(real, prediccion,",num.categorias.pred(),")\n"))
+                "prediccion <- prediccion.boosting\n",
+                "MC.boosting <<- crear.matriz.conf(real, prediccion,",num.categorias.pred(),")\n"))
 }
 
 #Codigo del grafico de boosting
-boosting.plot <- function(type = "discrete"){
-  return(paste0("plot(modelo.boosting.",type,")"))
+boosting.plot <- function(){
+  return(paste0("plot(modelo.boosting)"))
 }
 
-#Codigo del grafico de boosting
-boosting.plot.import <- function(type = "discrete"){
-  return(paste0("varP(modelo.boosting.",type,")"))
+#Codigo del grafico de importancia de variables de boosting
+boosting.plot.import <- function() {
+  return(paste0(
+    "aux <- data.frame(importancia = modelo.boosting$importance)\n",
+    "aux$nombre <- row.names(aux)\n\n",
+    "aux <- aux[order(aux$importancia, decreasing = T), ]\n",
+    "ggplot(aux, aes(x = importancia, y = fct_reorder(nombre, importancia))) +\n",
+    "  geom_bar(stat = 'identity', fill = 'steelblue') + labs(x = '', y = '') +\n",
+    "  theme_minimal()\n"
+  ))
 }
 
-rules.boosting <- function(type = "discrete", i){
-  return(paste0("rules(modelo.boosting.",type,"$model$trees[[",i,"]])"))
-}
-
-varP <- function (x, plot.it = TRUE, type = c("none", "scores"), max.var.show = 30, ...){
-  if (class(x) != "ada") {
-    stop("Object must be of type 'ada'")
-  }
-  if (missing(type)) {
-    type = "none"
-  }
-  iter <- x$iter
-  nm <- x$names
-  vec <- rep(0, length(nm))
-  p = x$dim[2]
-  g1 <- function(i, obj) {
-    if (dim(obj[[i]]$frame)[1] < 2) {
-      return(rep(0, p))
-    }
-    imp <- obj[[i]]$splits[, 3]^2
-    vals <- match(row.names(obj[[i]]$splits), nm)
-    vec = rep(0, p)
-    vec[vals] <- imp
-    vec
-  }
-  vec <- 1/iter * sqrt(apply(sapply(1:iter, function(i) g1(i,
-                                                           x$model$trees)), 1, sum))
-  vars <- order(vec, decreasing = TRUE)
-  n <- length(vec)
-  max.v = max.var.show
-  if (p < max.v)
-    max.v = p
-  if (plot.it == TRUE) {
-    df <- data.frame( val = vec[vars[max.v:1]], label = nm[vars[max.v:1]]) %>%
-      dplyr::mutate(label = forcats::fct_reorder(label, val, .desc = FALSE))
-
-    print(ggplot(df, ggplot2::aes(x = label, y = val, fill = label)) +
-            geom_bar(stat = "identity", position = "identity", width = 0.1) +
-            labs(title = tr("varp"),  y = "", x = "") +
-            scale_y_continuous(labels = scales::comma) +
-            coord_flip() +
-            theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                  legend.position = "none"))
-  }
-  if (type == "scores") {
-    vars = vars[1:max.v]
-    t1 <- vec[vars]
-    attr(t1, "names") <- nm[vars]
-    return(t1)
-  }
+rules.boosting <- function(i){
+  return(paste0("rules(modelo.boosting$trees[[",i,"]])"))
 }
 
 rules <- function (model, compact = FALSE, ...){
@@ -796,15 +755,17 @@ rules <- function (model, compact = FALSE, ...){
   names <- row.names(frm)
   ylevels <- attr(model, "ylevels")
   ds.size <- model$frame[1, ]$n
-  if (rtree)
+  if (rtree){
     ordered <- rev(sort(frm$n, index = TRUE)$ix)
-  else ordered <- rev(sort(frm$yval2[, 5], index = TRUE)$ix)
+  } else {
+    ordered <- rev(sort(frm$yval2[, 5], index = TRUE)$ix)
+  }
   for (i in ordered) {
     if (frm[i, 1] == "<leaf>") {
       if (rtree)
         yval <- frm[i, ]$yval
       else {
-        yval <- as.numeric(ylevels[frm[i, ]$yval])
+        yval <- ylevels[frm[i, ]$yval]
         yval <- ifelse(yval == -1, 1, 2)
         yval <- levels(datos.aprendizaje[,variable.predecir])[yval]
       }

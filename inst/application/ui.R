@@ -1,7 +1,7 @@
 
 suppressMessages(suppressWarnings({
   library(DT)
-  library(ada)
+  library(adabag)
   library(kknn)
   library(tidyverse)
   library(shiny)
@@ -736,9 +736,7 @@ opciones.b <- list(fluidRow(column(width = 9,h4(labelInput("opciones"))),
                    conditionalPanel("input.BoxB != 'tabBRules'",
                                     fluidRow(column(numericInput("iter.boosting", labelInput("numTree"), 50, width = "100%",min = 1), width = 6),
                                              column(numericInput("maxdepth.boosting", labelInput("maxdepth"), 15, width = "100%",min = 1), width=6)),
-                                    fluidRow(column(selectInput(inputId = "tipo.boosting", label = labelInput("selectAlg"),selected = 1,
-                                                                choices =  c("discrete", "real", "gentle")), width = 6),
-                                             column(numericInput("minsplit.boosting", labelInput("minsplit"), 20, width = "100%",min = 1), width=6))),
+                                    fluidRow(column(numericInput("minsplit.boosting", labelInput("minsplit"), 20, width = "100%",min = 1), width=6))),
                    conditionalPanel("input.BoxB == 'tabBRules'",
                                     numericInput("rules.b.n",labelInput("ruleNumTree"),1, width = "100%", min = 1)))
 
@@ -746,12 +744,9 @@ codigo.b  <- list(h4(labelInput("codigo")), hr(),
                    conditionalPanel("input.BoxB == 'tabBModelo'",
                                     aceEditor("fieldCodeBoosting", mode = "r", theme = "monokai",
                                               value = "", height = "5vh", readOnly = T, autoComplete = "enabled")),
-                   conditionalPanel("input.BoxB == 'tabBError'",
-                                    aceEditor("fieldCodeBoostingPlot", mode = "r", theme = "monokai",
-                                              value = "", height = "3vh", readOnly = T, autoComplete = "enabled")),
                    conditionalPanel("input.BoxB == 'tabBImp'",
                                     aceEditor("fieldCodeBoostingPlotImport", mode = "r", theme = "monokai",
-                                              value = "", height = "3vh", readOnly = T, autoComplete = "enabled")),
+                                              value = "", height = "15vh", readOnly = T, autoComplete = "enabled")),
                    conditionalPanel("input.BoxB == 'tabBPred'",
                                     aceEditor("fieldCodeBoostingPred", mode = "r", theme = "monokai",
                                               value = "", height = "3vh", readOnly = T, autoComplete = "enabled")),
@@ -770,9 +765,6 @@ tabs.b  <- tabsOptions(botones = list(icon("gear"),icon("code")), widths = c(50,
 
 panel.generar.boosting <- tabPanel(title = labelInput("generatem"), value = "tabBModelo",
                               verbatimTextOutput("txtBoosting"))
-
-plot.boosting <- tabPanel(title = labelInput("evolerror"), value = "tabBError",
-                                 plotOutput('plot.boosting', height = "55vh"))
 
 plot.boosting.import <- tabPanel(title = labelInput("varImp"), value = "tabBImp",
                     plotOutput('plot.boosting.import', height = "55vh"))
@@ -796,7 +788,6 @@ reglas.boosting <- tabPanel(title = labelInput("reglas"), value = "tabBRules",
 pagina.boosting <- tabItem(tabName = "boosting",
                            tabBox(id = "BoxB", width = NULL, height ="80%",
                                   panel.generar.boosting,
-                                  plot.boosting,
                                   plot.boosting.import,
                                   panel.prediccion.boosting,
                                   panel.matriz.confucion.boosting,
@@ -1296,14 +1287,14 @@ pagina.info <- tabItem(tabName = "acercaDe",
                        infoBoxPROMiDAT(labelInput("copyright"), "PROMiDAT S.A.", icono = icon("copyright")),
                        infoBoxPROMiDAT(labelInput("info"), tags$a( href="https://www.promidat.com/", style = "color:white;",
                                                                    target = "_blank", "https://www.promidat.com"), icono = icon("info")),
-                       infoBoxPROMiDAT(labelInput("version"), "1.1.7", icono = icon("file-code-o")))
+                       infoBoxPROMiDAT(labelInput("version"), "1.1.9", icono = icon("file-code-o")))
 
 # PAGINA COMPLETA ---------------------------------------------------------------------------------------------------------
 
 shinyUI(
-  dashboardPagePlus(
+  dashboardPage(
   title="PROMiDAT - PredictoR",
-  dashboardHeaderPlus(
+  dashboardHeader(
     title = tags$a(href="http://promidat.com", target = "_blank",
                    img(src="Logo2.png", height=55, width="100%",
                        id="imgPromidat"))),
