@@ -30,7 +30,7 @@ mod_knn_ui <- function(id){
   
 opc_knn <- div(conditionalPanel(
   "input['knn_ui_1-BoxKnn'] == 'tabKknModelo'",
-  tabsOptions(heights = c(70, 30), tabs.content = list(
+  tabsOptions(heights = c(80, 30), tabs.content = list(
     list(options.run(ns("runKnn")), tags$hr(style = "margin-top: 0px;"),
                           fluidRow(col_6(
                             numericInput(ns("kmax.knn"), labelInput("kmax"), min = 1,step = 1, value = 7)),

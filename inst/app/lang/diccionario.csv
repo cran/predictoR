@@ -15,6 +15,7 @@ bigPlot;El gráfico es demasiado grande para desplegarse;The graph is too large 
 bl;Potenciación;Boosting
 buscar;Buscar:;Search: 
 betas;Coeficientes Beta;Beta Coefficients
+cant;Cantidad;Count
 cargar;Cargar;Load
 cargarchivo;Cargar Archivo;Load Archive 
 cargarComp;Cargar Tabla Completa;Load Full Data
@@ -109,6 +110,7 @@ predicnuevos;Predicción Individuos Nuevos;Predict New Cases
 predm;Predicción del Modelo;Prediction of the Model
 precG;Precisión Global;Global Precision
 promedio;Promedio;Mean
+porcentaje;Porcentaje;Percent
 propA;Partición de Aprendizaje:;Training partition:
 propP;Partición de Prueba;Test partition:
 punto;Punto;Point

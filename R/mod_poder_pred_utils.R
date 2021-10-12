@@ -80,9 +80,8 @@ e_categorico_dist <- function(datos, variable, var.predecir, label = "${X} ${Y}"
     e_legend(orient = 'vertical',
              right = '5', top = '15%') |> 
     e_flip_coords() |> 
-    e_tooltip(formatter = e_JS("
-                                        function(params){
-                                        return('<strong>' + params.value[1] +
+    e_tooltip(formatter = e_JS("function(params){
+                                 return('<strong>' + params.value[1] +
                                         '</strong><br />Percent: ' + parseFloat(params.value[0] * 100).toFixed(2)+
                                         '%<br /> ' + 'Count: ' + params.name)}"))|> 
     e_x_axis(

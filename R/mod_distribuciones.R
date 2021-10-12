@@ -28,7 +28,7 @@ mod_distribuciones_ui <- function(id){
       ))),
     conditionalPanel(
       "input.tabDyA == 'numericas'",
-      tabsOptions(botones = list(icon("gear"), icon("info"), icon("code")),
+      tabsOptions(botones = list(icon("cog"), icon("info"), icon("code")),
                   widths = c(50, 100, 100), heights = c(50, 50, 35), 
       tabs.content = list(
         list(
@@ -135,7 +135,7 @@ mod_distribuciones_server <- function(input, output, session, updateData){
       
       datos.plot |> e_charts(label) |> e_bar(value, name = var) |>
         e_tooltip() |> e_datazoom(show = F) |> e_show_loading()|>
-        e_add("itemStyle", color)|> e_legend(FALSE)
+        e_add_nested("itemStyle", color)|> e_legend(FALSE)
     }, error = function(e) {
       showNotification(paste0("ERROR: ", e), duration = 10, type = "error")
       return(NULL)

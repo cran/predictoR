@@ -30,17 +30,17 @@ mod_ind_nuevos_ui <- function(id){
                                       codigo.monokai(ns("fieldCodePredPN"),height = "10vh")))
  
   tabs.modelos   <- tabsOptions(botones = list(icon("code")), widths = c(100), heights = c(40),
-                                tabs.content = list(codigo.monokai(ns("fieldPredNuevos"),height = "10vh")))
+                                tabs.content = list(list(codigo.monokai(ns("fieldPredNuevos"),height = "10vh"))))
   
-  tabs.modelos2  <- tabsOptions(botones = list(icon("code")), widths = c(100), heights = c(40),
-                                tabs.content = list(codigo.monokai(ns("fieldCodePredPN"),height = "10vh")))
-
+  tabs.modelos2  <- div(tabsOptions(botones = list(icon("code")), widths = c(100), heights = c(40),
+                                tabs.content = list(list(codigo.monokai(ns("fieldCodePredPN"),height = "10vh")))))
+  
   tagList(
     div(id = ns("primera"),
         fluidRow(
           col_11(
             tabBoxPrmdt(
-            id = "BoxModeloq", 
+            id = "BoxModeloq",
             tabPanel(
             title = p(labelInput("cargarComp"),class = "wrapper-tag"), width = 12, solidHeader = FALSE,
             collapsible = FALSE, collapsed = FALSE, value = "Cargar",
@@ -95,24 +95,24 @@ mod_ind_nuevos_ui <- function(id){
                                           icon = icon("backward"))),
                  col_10(
                    tabBoxPrmdt(
-                     id = "BoxModeloa",
+                     id = "BoxModeloa",opciones = conditionalPanel("input.BoxModelo == 'predicModelo'", tabs.modelos),
                      tabPanel(title = p(labelInput("seleParModel"),class = "wrapper-tag") ,solidHeader = FALSE, collapsible = FALSE, collapsed = FALSE, value = "crearModelo",
                                 fluidRow(
                                   col_6(selectInput(inputId = ns("sel.predic.var.nuevos"), label = labelInput("seleccionarPredecir"), choices =  "", width = "100%")),
-                                  col_6(selectInput(inputId = ns("selectModelsPred"), label = labelInput("selectMod"), 
+                                  col_6(selectInput(inputId = ns("selectModelsPred"), label = labelInput("selectMod"),
                                                     choices =  list("knn", "dt", "rf", "ada", "svm","bayes", "xgb", "nn", "rl", "rlr"), width = "100%"))
                                 ), hr(style = "border-top: 2px solid #cccccc;" ),
                               uiOutput(ns('opcModelsPredN')),
-                              
+
                               actionButton(ns("PredNuevosBttnModelo"), labelInput("generarM"), width  = "100%" ),br(),br(),
-                              withLoader(verbatimTextOutput(ns("txtPredNuevos")), 
-                                         type = "html", loader = "loader4")),
-                     conditionalPanel("input.BoxModelo == 'predicModelo'",tabs.modelos)
+                              withLoader(verbatimTextOutput(ns("txtPredNuevos")),
+                                         type = "html", loader = "loader4"))
 
                  )),
                  col_1(actionButton(ns("modelnext"), label = NULL, width = "100%",
                                     icon = icon("forward")))
-        )),
+        )
+        ),
     div(id = ns("cuarta"),
         style = "display:none",
         fluidRow(col_1(actionButton (ns("nuevosback"), label = NULL, width = "100%",
@@ -149,15 +149,15 @@ mod_ind_nuevos_ui <- function(id){
                                      icon = icon("backward"))),
                  col_10(
                    tabBoxPrmdt(
-                     id = "BoxModelo",
+                     id = "BoxModelo", opciones =  conditionalPanel("input.BoxModelo == 'predicModelo'", tabs.modelos2),
                      tabPanel(title = p(labelInput("predicnuevos"),class = "wrapper-tag"), value = "predicModelo",
                               DT::dataTableOutput(ns("PrediTablePN")),
                               hr(),
                               downloadButton(ns("downloaDatosPred"), labelInput("descargar"), style = "width:100%;"),
-                              actionButton(ns("predecirPromidat"), "preditc"),  br()),
-                     conditionalPanel("input.BoxModelo == 'predicModelo'",tabs.modelos2)
+                              actionButton(ns("predecirPromidat"), "preditc"),  br())
                    ))
-        ))
+        )
+        )
   )
 }
 

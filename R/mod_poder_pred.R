@@ -81,17 +81,27 @@ mod_poder_pred_server <- function(input, output, session, updateData){
       data <- updateData$datos[, var]
       cod  <- code.dist.varpred(var)
       updateAceEditor(session, "fieldCodeDistpred", value = cod)
-      label <- levels(data) 
-      color <- gg_color_hue(length(levels(data)))
-      value <- summary(data, maxsum = length(levels(data)))
-      datos <- data.frame (
+      label   <- levels(data) 
+      color   <- gg_color_hue(length(levels(data)))
+      value   <- summary(data, maxsum = length(levels(data)))
+      prop    <- value/length(data)
+      grafico <- data.frame (
+        name  = var,
         label = label, 
         value = value,
-        color = color
+        color = color,
+        prop  = prop
       )
-      datos |> e_charts(label) |> e_bar(value, name = var)  |>
-        e_tooltip() |> e_datazoom(show = F) |> e_show_loading()|>
-        e_add("itemStyle", color) |> e_legend(FALSE)
+
+      grafico |> 
+        e_charts(label) |> 
+        e_bar(value, prop, name = var) |> 
+        e_tooltip(formatter = e_JS(paste0("function(params){
+                                      return('<strong>' +  params.value[0] +
+                                             '</strong><br />", tr("porcentaje", updateData$idioma) ,": ' + parseFloat(params.name * 100).toFixed(2)+
+                                             '%<br /> ' + '", tr("cant", updateData$idioma),": ' + params.value[1])}"))) |> 
+        e_legend(FALSE)|> e_show_loading()|>        
+        e_datazoom(show = F) |> e_add_nested("itemStyle", color)
     }, error = function(e) {
       showNotification(paste0("ERROR: ", e), duration = 10, type = "error")
       return(NULL)

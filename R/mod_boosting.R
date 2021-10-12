@@ -221,7 +221,7 @@ mod_boosting_server <- function(input, output, session, updateData, modelos){
       aux <- aux[order(aux$importancia, decreasing = T), ]
       aux |>  e_charts(nombre) |>  e_bar(importancia, name = var) |>   
         e_tooltip() |>  e_datazoom(show = F) |>  e_show_loading()|>
-        e_add("itemStyle", color) |>   
+        e_add_nested("itemStyle", color) |>   
         e_flip_coords() |>  
         e_y_axis(inverse = TRUE)
     }, error = function(e) {

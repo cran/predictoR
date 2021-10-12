@@ -40,24 +40,25 @@ app_ui <- function(request) {
             </a>
           </span>',
           '<img src= "img/logo_small.png" height = 50%, width = "120%">'
-        ))
+        )), 
+        controlbarIcon = icon("cogs")
       ),
       dashboardSidebar(
         sidebarMenu(
           id = "principal",
           tags$div(style = "padding-top:10px;"),
-          menuItem(labelInput("data"), icon = icon("dashboard"),
+          menuItem(labelInput("data"), icon = icon("database"),
                                                           tabName = "cargar"),
           menuItem(labelInput("basico"), tabName = "parte1",
                    icon = icon("th-list"),
                    menuSubItem(labelInput("resumen"), "resumen",
-                               icon = icon("sort-numeric-asc")),
+                               icon = icon("sort-numeric-down")),
                    menuSubItem(labelInput("normalidad"), "normalidad",
-                               icon = icon("bar-chart")),
+                               icon = icon("chart-bar")),
                    menuSubItem(labelInput("dispersion"), "dispersion",
-                               icon = icon("line-chart")),
+                               icon = icon("chart-line")),
                    menuSubItem(labelInput("distribucion"), "distribucion",
-                               icon = icon("area-chart")),
+                               icon = icon("chart-area")),
                    menuSubItem(labelInput("correlacion"), "correlacion",
                                icon = icon("table"))                   ,
                    menuSubItem(labelInput("poderpred"), "poderPred",
@@ -66,9 +67,9 @@ app_ui <- function(request) {
           menuItem(labelInput("aprendizaje"), tabName = "parte2", 
                   icon = icon("th-list"),
                   menuSubItem(labelInput("knnl"),tabName = "knn",
-                              icon = icon("dot-circle-o")),
+                              icon = icon("dot-circle")),
                   menuSubItem(labelInput("svml"),tabName = "svm",
-                              icon = icon("line-chart")),
+                              icon = icon("vector-square")),
                   menuSubItem(labelInput("dtl"),tabName = "dt",
                               icon = icon("tree")),                                         
                   menuSubItem(labelInput("rfl"),tabName = "rf",
@@ -82,9 +83,9 @@ app_ui <- function(request) {
                   menuSubItem(labelInput("nn"),tabName = "nn",
                               icon = icon("brain")),
                   menuSubItem(labelInput("rl"),tabName = "rl",
-                              icon = icon("line-chart")),
+                              icon = icon("chart-line")),
                   menuSubItem(labelInput("rlr"),tabName = "rlr",
-                              icon = icon("line-chart"))),
+                              icon = icon("wave-square"))),
           menuItem(labelInput("comparacion"), tabName = "comparar", 
                    icon = icon("eye")),
           menuItem(labelInput("predicnuevos"), tabName = "predNuevos", 
@@ -129,59 +130,59 @@ app_ui <- function(request) {
           # Correlaciones
           tabItem(tabName = "correlacion", 
                   mod_correlacion_ui("correlacion_ui_1")),
-          
+
           # Poder Predictivo
-          tabItem(tabName = "poderPred", 
+          tabItem(tabName = "poderPred",
                   mod_poder_pred_ui("poder_pred_ui_1")),
-          
+
           # K Vecinos
-          tabItem(tabName = "knn", 
-                  mod_knn_ui("knn_ui_1")),   
-          
+          tabItem(tabName = "knn",
+                  mod_knn_ui("knn_ui_1")),
+
           # Support Vector Machines
-          tabItem(tabName = "svm", 
+          tabItem(tabName = "svm",
                   mod_svm_ui("svm_ui_1")),
-          
+
           # Decision Trees
-          tabItem(tabName = "dt", 
+          tabItem(tabName = "dt",
                   mod_d_tree_ui("d_tree_ui_1")),
-          
+
           # Random Forest
-          tabItem(tabName = "rf", 
+          tabItem(tabName = "rf",
                   mod_r_forest_ui("r_forest_ui_1")),
-          
+
           # XGBoosting
-          tabItem(tabName = "xgb", 
+          tabItem(tabName = "xgb",
                   mod_xgboosting_ui("xgboosting_ui_1")),
-          
+
           # Potenciacion
-          tabItem(tabName = "boosting", 
-                  mod_boosting_ui("boosting_ui_1")),          
-          
+          tabItem(tabName = "boosting",
+                  mod_boosting_ui("boosting_ui_1")),
+
           # Bayes
-          tabItem(tabName = "bayes", 
+          tabItem(tabName = "bayes",
                   mod_bayes_ui("bayes_ui_1")),
-          
+
           # Neural Net
-          tabItem(tabName = "nn", 
-                  mod_neural_net_ui("neural_net_ui_1")),         
-          
+          tabItem(tabName = "nn",
+                  mod_neural_net_ui("neural_net_ui_1")),
+
           # Logistic Regression
-          tabItem(tabName = "rl", 
-                  mod_l_regression_ui("l_regression_ui_1")),      
-          
+          tabItem(tabName = "rl",
+                  mod_l_regression_ui("l_regression_ui_1")),
+
           # Penalized Logistic Regression
-          tabItem(tabName = "rlr", 
+          tabItem(tabName = "rlr",
                   mod_penalized_l_r_ui("penalized_l_r_ui_1")),
-          
+
           # Comparación de Modelos
-          tabItem(tabName = "comparar", 
-                  mod_comparacion_ui("comparacion_ui_1")),   
-          
+          tabItem(tabName = "comparar",
+                  mod_comparacion_ui("comparacion_ui_1")),
+
           # Predicción Individuos Nuevos
-          tabItem(tabName = "predNuevos", 
+          tabItem(tabName = "predNuevos",
                   mod_ind_nuevos_ui("ind_nuevos_ui_1")),
-          
+
           # Acerca De
           tabItem(tabName = "acercaDe", 
                   mod_acercade_ui("acercade_ui_1"))
