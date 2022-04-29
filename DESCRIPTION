@@ -1,10 +1,10 @@
 Package: predictoR
 Title: Predictive Data Analysis System
-Version: 2.0.5
+Version: 2.0.7
 Authors@R: c(person(given = "Oldemar", family = "Rodriguez", role = c("aut", "cre"), email = "oldemar.rodriguez@ucr.ac.cr"),
-            person(given = "Diego", family = "Jiménez", role = c("ctb", "prg")),
-            person(given = "Andres", family = "Navarro", role = c("ctb", "prg")),
-            person(given = "Joseline", family = "Quirós", role = c("ctb", "prg")))
+            person(given = "Andres", family = "Navarro", role = c("aut", "prg")),
+            person(given = "Joseline", family = "Quirós", role = c("aut", "prg")),
+            person(given = "Diego", family = "Jiménez", role = c("ctb", "prg")))
 Description: Perform a supervised data analysis on a database through a 'shiny' graphical interface. It includes methods such as K-Nearest Neighbors, Decision Trees, ADA Boosting, Extreme Gradient Boosting, Random Forest, Neural Networks, Deep Learning, Support Vector Machines and Bayesian Methods.
 License: GPL (>= 2)
 Imports: DT (>= 0.19), golem (>= 0.3.1), shiny (>= 1.7.1), rlang (>=
@@ -19,11 +19,11 @@ Encoding: UTF-8
 URL: https://www.promidat.com
 RoxygenNote: 7.1.1
 NeedsCompilation: no
-Packaged: 2021-10-11 23:00:13 UTC; promidat06
+Packaged: 2022-04-28 16:36:48 UTC; promidat06
 Author: Oldemar Rodriguez [aut, cre],
-  Diego Jiménez [ctb, prg],
-  Andres Navarro [ctb, prg],
-  Joseline Quirós [ctb, prg]
+  Andres Navarro [aut, prg],
+  Joseline Quirós [aut, prg],
+  Diego Jiménez [ctb, prg]
 Maintainer: Oldemar Rodriguez <oldemar.rodriguez@ucr.ac.cr>
 Repository: CRAN
-Date/Publication: 2021-10-12 17:20:02 UTC
+Date/Publication: 2022-04-29 23:50:03 UTC

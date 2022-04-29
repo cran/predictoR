@@ -732,7 +732,7 @@ mod_ind_nuevos_server <- function(input, output, session, updateData, newCases){
     prueba      <- newCases$datos.prueba
     aprendizaje <- newCases$datos.aprendizaje
     for(nombre in colnames(prueba)){
-      if(class(prueba[,nombre]) == "factor"){
+      if(class(prueba[,nombre]) %in% c("factor")){
         levels(prueba[,nombre]) <- unique(c(levels(prueba[,nombre]),
                                                              levels(aprendizaje[,nombre])))
       }

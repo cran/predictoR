@@ -43,7 +43,7 @@ boosting.plot.import <- function() {
 
 #Código del grafico de evolucion del error
 e_evol_error <- function(x) {
-  if (!((class(x) == "errorevol"))) 
+  if (!((class(x) %in% c("errorevol")))) 
     stop("x class should be errorevol")
   train    <- x$error
   evolplot <- data.frame(x = c(1:length(x$error)), train = train)

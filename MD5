@@ -1,16 +1,16 @@
-2fdddd7ceacceac11cdb9c0fdcf4930d *DESCRIPTION
+d91df5b3e4bcb8e1b2bf6ac25fa134e3 *DESCRIPTION
 32f81ecd84ddc0e8e1e65c42e80b3632 *NAMESPACE
 d57974f295f1b0d024f82219e5a98902 *R/app_config.R
 6796e060ef80cd85e0f74f0f2f834df2 *R/app_server.R
 69131d3efbf58228e3187150ba41fea4 *R/app_ui.R
 e571f7b74533ae6fdf3363643e101f72 *R/golem_utils_server.R
 174e93edea0eba065751fe5b45803062 *R/golem_utils_ui.R
-afa3cbdc1d846eb4793cb9cc429e0fea *R/mod_acercade.R
+64f67da476f717b47701d6c3ab07f289 *R/mod_acercade.R
 996b9ce875e639a685c8b7bb538d14cc *R/mod_bayes.R
 c04919ea338cdd45c7e9b59ca5e7b066 *R/mod_bayes_utils.R
 6c3fac9d1a4445452d69690467c9470d *R/mod_boosting.R
 e6da320de0c4f03ef211bdbfedf06f50 *R/mod_boosting_fct.R
-a67c88634e53fe63812beb1df74fde58 *R/mod_boosting_utils.R
+b1708a3282a9e507e8699acf80c25c85 *R/mod_boosting_utils.R
 772cf7b7a33894e867f7ce19333d2dc4 *R/mod_carga_datos.R
 0bd709c12d2b8c3358ae10a1d9a1149b *R/mod_carga_datos_utils.R
 a9d80d9b8cd093bd40c4033c17788299 *R/mod_comparacion.R
@@ -24,7 +24,7 @@ c7a8ed1e8d7b7b1de6d4589822bde738 *R/mod_dispersion.R
 47d39bd8923f6051e6581c50299f4de0 *R/mod_distribuciones.R
 776482d0733fb5b32c9701d6ddba5027 *R/mod_distribuciones_fct.R
 e9afdd51135433f1521bfd5bbc321f23 *R/mod_distribuciones_utils.R
-a8cc8337a967acce30e5c342f578cc54 *R/mod_ind_nuevos.R
+428a1e53b491e7d92032f90c3adc7aec *R/mod_ind_nuevos.R
 fa02d0896339de969d2745c87e5ff60e *R/mod_ind_nuevos_utils.R
 8bf6853cf59263e43470cd4fd2ff30f5 *R/mod_knn.R
 632e0764705351060690d6fbec10d4d9 *R/mod_knn_utils.R
@@ -49,7 +49,7 @@ dd40cb5bd0c1ee10caf4b5ed1da2e40b *R/mod_r_forest_utils.R
 8084494d321b36dc84d05209a14ff032 *R/mod_svm_utils.R
 085364961196713050dafb24fdfc8033 *R/mod_xgboosting.R
 6148901e91aaca286875a517659ae9f8 *R/mod_xgboosting_utils.R
-07861e5598b7f8c38a15ca9c54fcd711 *R/predictoR.R
+9bdf48f2c032f5908a12e04318ade90d *R/predictoR.R
 ea67c13aca1d36aeb62e6f7621023220 *R/run_app.R
 9f0dd37b4db7deec19d1ec00e229f59c *R/utils_global.R
 6502bad07196ec2225e2b0d1f33763ad *R/utils_input.R
@@ -63,7 +63,7 @@ a3e87a99938150f272c2df73bbd22332 *inst/app/www/predictor_inputs.js
 25870fb26b887065e89f73bb8ff4829c *inst/app/www/predictor_options.css
 7e781178cf0d4784055d588221afac6b *inst/app/www/predictor_options.js
 b2fcfbfabffcbc8b74cda32d227d446d *inst/app/www/style_predictor.css
-f86483ec958eeb645a9d91d3e3266e59 *inst/golem-config.yml
+b910ddc59a4201bc35d7aac734e7af41 *inst/golem-config.yml
 eaa9308f83eed63ea13914947ee5ef5e *inst/rstudio/addins.dcf
 60d7b07d8cad5aa39d92b11b7ed8ce83 *man/addoutliersh.Rd
 cc2c1c6b2dc5837e769df70830ff1f65 *man/app_server.Rd
