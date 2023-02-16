@@ -9,31 +9,30 @@
 #' @importFrom shiny NS tagList 
 mod_bayes_ui <- function(id){
   ns <- NS(id)
-  codigo.run <- list(
-                       conditionalPanel("input['bayes_ui_1-BoxBayes'] == 'tabBayesModelo'",
-                                        codigo.monokai(ns("fieldCodeBayes"), height = "10vh")))
-  codigo.bayes <- list(conditionalPanel("input['bayes_ui_1-BoxBayes'] == 'tabBayesPred'",
-                                        codigo.monokai(ns("fieldCodeBayesPred"), height = "10vh")),
-                       conditionalPanel("input['bayes_ui_1-BoxBayes'] == 'tabBayesMC'",
-                                        codigo.monokai(ns("fieldCodeBayesMC"), height = "10vh")),
-                       conditionalPanel("input['bayes_ui_1-BoxBayes'] == 'tabBayesIndex'",
-                                        codigo.monokai(ns("fieldCodeBayesIG"), height = "10vh")))
   
-  opc_bayes <- tabsOptions(botones = list(icon("code")), widths = c(100), heights = c(95),
-                            tabs.content = list(codigo.bayes))
   opciones <-   
     div(
       conditionalPanel(
-        "input['bayes_ui_1-BoxBayes'] == 'tabBayesModelo'",
-        tabsOptions(heights = c(70, 30), tabs.content = list(
-          list(
+        "input['bayes_ui_1-BoxBayes'] == 'tabBayesModelo' || input['bayes_ui_1-BoxBayes'] == 'tabBayesProb' || input['bayes_ui_1-BoxBayes'] == 'tabBayesProbInd'",
+        tabsOptions(heights = c(70), tabs.content = list(
+          list(conditionalPanel("input['bayes_ui_1-BoxBayes']   == 'tabKknModelo'",
             options.run(ns("runBayes")), tags$hr(style = "margin-top: 0px;")),
-          codigo.run
-        ))),
-      conditionalPanel(
-        "input['bayes_ui_1-BoxBayes'] != 'tabBayesModelo'",
-        tabsOptions(botones = list(icon("code")), widths = 100,heights = 55, tabs.content = list(
-          codigo.bayes
+            conditionalPanel(
+              "input['bayes_ui_1-BoxBayes'] == 'tabBayesProb'",
+              options.run(ns("runProb")), tags$hr(style = "margin-top: 0px;"),
+              div(col_12(selectInput(inputId = ns("cat.sel.prob"),label = labelInput("selectCat"),
+                                     choices =  "", width = "100%"))),
+              div(col_12(numericInput(inputId = ns("by.prob"),label =  labelInput("selpaso"), value = -0.05, min = -0.0, max = 1,
+                                      width = "100%")))
+            ),
+            conditionalPanel(
+              "input['bayes_ui_1-BoxBayes'] == 'tabBayesProbInd'",
+              options.run(ns("runProbInd")), tags$hr(style = "margin-top: 0px;"),
+              div(col_12(selectInput(inputId = ns("cat_probC"),label = labelInput("selectCat"),
+                                     choices =  "", width = "100%"))),
+              div(col_12(numericInput(inputId = ns("val_probC"),label =  labelInput("probC"), value = 0.5, min = 0, max = 1, step = 0.1, 
+                                      width = "100%")))))
+          
         )))
     )
   
@@ -57,7 +56,13 @@ mod_bayes_ui <- function(id){
                fluidRow(col_6(echarts4rOutput(ns("bayesPrecGlob"), width = "100%")),
                         col_6(echarts4rOutput(ns("bayesErrorGlob"), width = "100%"))),
                fluidRow(col_12(shiny::tableOutput(ns("bayesIndPrecTable")))),
-               fluidRow(col_12(shiny::tableOutput(ns("bayesIndErrTable")))))
+               fluidRow(col_12(shiny::tableOutput(ns("bayesIndErrTable"))))),
+      tabPanel(title = labelInput("probC"), value = "tabBayesProbInd",
+               withLoader(verbatimTextOutput(ns("txtbayesprobInd")), 
+                          type = "html", loader = "loader4")),
+      tabPanel(title = labelInput("probCstep"), value = "tabBayesProb",
+               withLoader(verbatimTextOutput(ns("txtbayesprob")), 
+                          type = "html", loader = "loader4"))
     )
   )
 }
@@ -65,14 +70,26 @@ mod_bayes_ui <- function(id){
 #' bayes Server Function
 #'
 #' @noRd 
-mod_bayes_server <- function(input, output, session, updateData, modelos){
+mod_bayes_server <- function(input, output, session, updateData, modelos, codedioma, modelos2){
   ns <- session$ns
   nombre.modelo <- rv(x = NULL)
   
+  observeEvent(updateData$datos, {
+    modelos2$bayes = list(n = 0, mcs = vector(mode = "list", length = 10))
+  })
   #Cuando se generan los datos de prueba y aprendizaje
   observeEvent(c(updateData$datos.aprendizaje,updateData$datos.prueba), {
+    variable <- updateData$variable.predecir
+    datos    <- updateData$datos
+    choices  <- as.character(unique(datos[, variable]))
+    if(length(choices) == 2){
+      updateSelectInput(session, "cat_probC", choices = choices, selected = choices[1])
+      updateSelectInput(session, "cat.sel.prob", choices = choices, selected = choices[1])
+    }else{
+      updateSelectInput(session, "cat.sel.prob", choices = "")
+      updateSelectInput(session, "cat_probC", choices = "")
+    }
     updateTabsetPanel(session, "BoxBayes",selected = "tabBayesModelo")
-    default.codigo.bayes()
   })
   
   # Genera el texto del modelo, predicción y mc de bayes
@@ -85,11 +102,32 @@ mod_bayes_server <- function(input, output, session, updateData, modelos){
     var    <- paste0(updateData$variable.predecir, "~.")
     nombre <- paste0("Bayes")
     modelo <- traineR::train.bayes(as.formula(var), data = train)
-    pred   <- predict(modelo , test, type = 'class')
     prob   <- predict(modelo , test, type = 'prob')
     
-    mc     <- confusion.matrix(test, pred)
-    isolate(modelos$bayes[[nombre]] <- list(nombre = nombre, modelo = modelo ,pred = pred , prob = prob, mc = mc))
+    variable   <- updateData$variable.predecir
+    choices    <- levels(test[, variable])
+    
+    if(length(choices) == 2){
+      category   <- isolate(input$cat_probC)
+      corte      <- isolate(input$val_probC)
+      Score      <- prob$prediction[,category]
+      Clase      <- test[,variable]
+      results    <- prob.values.ind(Score, Clase, choices, category, corte, print = FALSE)
+      mc     <- results$MC
+      pred   <- results$Prediccion
+    }else{
+      pred   <- predict(modelo , test, type = 'class')
+      mc     <- confusion.matrix(test, pred)
+      pred   <- pred$prediction
+    }
+    
+    isolate({
+      modelos$bayes[[nombre]] <- list(nombre = nombre, modelo = modelo, pred = pred, prob = prob, mc = mc)
+      modelos2$bayes$n <- modelos2$bayes$n + 1
+      modelos2$bayes$mcs[modelos2$bayes$n] <- general.indexes(mc = mc)
+      if(modelos2$bayes$n > 9)
+        modelos2$bayes$n <- 0
+      })
     nombre.modelo$x <- nombre
     print(modelo)    
     },error = function(e){
@@ -101,7 +139,7 @@ mod_bayes_server <- function(input, output, session, updateData, modelos){
   output$bayesPrediTable <- DT::renderDataTable({
     test   <- updateData$datos.prueba
     var    <- updateData$variable.predecir
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     obj.predic(modelos$bayes[[nombre.modelo$x]]$pred,idioma = idioma, test, var)
   },server = FALSE)
   
@@ -112,14 +150,14 @@ mod_bayes_server <- function(input, output, session, updateData, modelos){
   
   #Gráfico de la Matríz de Confusión
   output$plot_bayes_mc <- renderPlot({
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     exe(plot.MC.code(idioma = idioma))
     plot.MC(modelos$bayes[[nombre.modelo$x]]$mc)
   })
   
   #Tabla de Indices por Categoría 
   output$bayesIndPrecTable <- shiny::renderTable({
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     indices.bayes <- indices.generales(modelos$bayes[[nombre.modelo$x]]$mc)
     
     xtable(indices.prec.table(indices.bayes,"bayes", idioma = idioma))
@@ -128,7 +166,7 @@ mod_bayes_server <- function(input, output, session, updateData, modelos){
   
   #Tabla de Errores por Categoría
   output$bayesIndErrTable  <- shiny::renderTable({
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     indices.bayes <- indices.generales(modelos$bayes[[nombre.modelo$x]]$mc)
 
     #Gráfico de Error y Precisión Global
@@ -138,24 +176,80 @@ mod_bayes_server <- function(input, output, session, updateData, modelos){
     
   }, spacing = "xs",bordered = T, width = "100%", align = "c", digits = 2)
   
+  # Genera la probabilidad de corte
+  output$txtbayesprob <- renderPrint({
+    input$runProb
+    tryCatch({
+      test       <- updateData$datos.prueba
+      variable   <- updateData$variable.predecir
+      choices    <- levels(test[, variable])
+      category   <- isolate(input$cat.sel.prob)
+      paso       <- isolate(input$by.prob)
+      prediccion <- modelos$bayes[[nombre.modelo$x]]$prob 
+      Score      <- prediccion$prediction[,category]
+      Clase      <- test[,variable]
+      prob.values(Score, Clase, choices, category, paso)  
+    },error = function(e){
+      if(length(choices) != 2){
+        showNotification(paste0("ERROR Probabilidad de Corte: ", tr("errorprobC", codedioma$idioma)), type = "error")
+      }else{
+        showNotification(paste0("ERROR: ", e), type = "error")
+      }
+      return(invisible(""))
+      
+    })
+  })
+  
+  # Genera la probabilidad de corte
+  output$txtbayesprobInd <- renderPrint({
+    input$runProbInd
+    tryCatch({
+      test       <- updateData$datos.prueba
+      variable   <- updateData$variable.predecir
+      choices    <- levels(test[, variable])
+      category   <- isolate(input$cat_probC)
+      corte      <- isolate(input$val_probC)
+      prediccion <- modelos$bayes[[nombre.modelo$x]]$prob 
+      Score      <- prediccion$prediction[,category]
+      Clase      <- test[,variable]
+      if(!is.null(Score) & length(choices) == 2){
+        results <- prob.values.ind(Score, Clase, choices, category, corte)
+        modelos$bayes[[nombre.modelo$x]]$mc   <- results$MC
+        modelos$bayes[[nombre.modelo$x]]$pred <- results$Prediccion
+      }
+      
+    },error = function(e){
+      if(length(choices) != 2){
+        showNotification(paste0("ERROR Probabilidad de Corte: ", tr("errorprobC", codedioma$idioma)), type = "error")
+      }else{
+        showNotification(paste0("ERROR: ", e), type = "error")
+      }
+      return(invisible(""))
+      
+    })
+  })
+  
   #Código por defecto de bayes
   default.codigo.bayes <- function() {
-
+    
     #Modelo
-    codigo <- bayes.modelo(updateData$variable.predecir)
-    updateAceEditor(session, "fieldCodeBayes", value = codigo)
+    codigo <- codigo.modelo("bayes", updateData$variable.predecir)
+    cod    <- paste0("### Bayes\n",codigo)
 
     #Predicción
-    codigo <- bayes.prediccion()
-    updateAceEditor(session, "fieldCodeBayesPred", value = codigo)
-
+    codigo <- codigo.prediccion("bayes")
+    cod  <- paste0(cod,codigo)
+    
     #Matríz de Confusión
-    codigo <- bayes.MC()
-    updateAceEditor(session, "fieldCodeBayesMC", value = codigo)
-
+    codigo <- codigo.MC("bayes")
+    cod  <- paste0(cod,codigo)
+    
     #Indices generales
     codigo <- extract.code("indices.generales")
-    updateAceEditor(session, "fieldCodeBayesIG", value = codigo)
+    codigo  <- paste0(codigo,"\nindices.generales(MC.bayes)\n")
+    cod  <- paste0(cod,codigo)
+    
+    isolate(codedioma$code <- append(codedioma$code, cod))
   }
 }
     

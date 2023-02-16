@@ -13,6 +13,8 @@ automatico;Automático;Automatic
 basico;Estadísticas Básicas;Basic Statistics
 bigPlot;El gráfico es demasiado grande para desplegarse;The graph is too large to display
 bl;Potenciación;Boosting
+boost;Potenciación;Boosting
+booster;Amplificador;Booster
 buscar;Buscar:;Search: 
 betas;Coeficientes Beta;Beta Coefficients
 cant;Cantidad;Count
@@ -29,12 +31,15 @@ correlacion;Correlación;Correlation
 curvanormal;Curva Normal;Normal Curve
 eliminana;Acción para Datos Ausentes (NAs);Action for Missing Data (NAs)
 errG;Error Global;Global Error
+errorprobC;Solo se aplica cuando la variable a predecir posee 2 categorías.;It only applies when the variable to predict has 2 categories.
 errorcat;Se necesitan variables categóricas  para esta parte.;You need categorical variables for this part.
 errornum;Se necesitan variables numéricas  para esta parte.;You need numerical variables for this part.
 ErrorModelo;Aún no genera el modelo;The model has not yet been generated
 escal;Escalar Datos;Scale Data
 comparacion;Comparación de Modelos;Model Comparison
 copyright;TODOS LOS DERECHOS RESERVADOS A;ALL RIGHTS RESERVED TO
+crossval;Validación Cruzada;Cross Validation
+calibracion;Calibración de Modelos;Model Calibration
 data;Datos;Data
 dataA;Datos de Aprendizaje;Training Sample
 dataP;Datos de Prueba;Test Sample
@@ -51,6 +56,7 @@ distrelvar;Distribución relativa de la variable;Relative distribution of the va
 distribucion;Distribución;Distribution
 distribuciones;Distribuciones;Distributions
 disyuntivo;Disyuntivo;Disjunctive
+docpredcat;Distribución de Variables Categóricas Según Variable a Predecir;Distribution of Categorical Variables According to the Variable to Predict
 ds;Desviación Estandar;Standard deviation
 dtl;Árboles De Decisión;Decision Trees
 espanol;Español;Spanish
@@ -59,10 +65,15 @@ eliminar;Eliminar;Delete
 evolerror;Evolución del Error;Error Evolution
 fallo;Falló;Failed
 garbol;Gráfico Árbol;Tree Plot
+grafLineas;Gráfico de Líneas;Line Plot
+grafBarras;Gráfico de Barras;Bar Plot
+grafError;Gráfico de Variación del Error;Error Variation Plot
+varError;Variación del Error;Error Variation 
 gclasificacion;Diagrama de Voronoi;Voronoi Diagram
 gcoeff;Coeficientes y lambda;Coefficients and lambda
 generar;Generar;Generate
 generarM;Generar Modelo;Generate Model
+generarT;Generar todos los Modelos;Generate All Models
 generatem;Generación del Modelo;Generation of the Model
 habilitada;Habilitada;Enabled
 header;Nombre de Variables;Variables names 
@@ -70,13 +81,17 @@ histograma;Histograma;Histogram
 home;Inicio;Home
 idioma;Idioma;Language
 indices;Índices Generales;General Indexes
+indicesCat;Índices por Categoría;Categorical Indexes
 imputar;Imputar;Impute
 inferior;Valor Inferior;Lower Value
 info;MÁS INFORMACIÓN;MORE INFORMATION
+iter;Iteración;Iteration
 knnl;K Vecinos Más Cercanos;K Nearest Neighbors
 kmax;K Máximo:;K Max:
 landa;Seleccionar Log(λ):;Select Log(λ):
 lambda;Log(λ);Log(λ)
+lda;Análisis Discriminante Lineal;Linear Discriminant Analysis
+adl;Análisis Discriminante Lineal;Linear Discriminant Analysis
 limitLambda;Lambda seleccionado fuera del rango;Lambda selected  out of range
 limitModel;Este modelo solo se puede aplicar a variables binarias;This model can only be applied to binary variables
 manual;Manual;Manual
@@ -85,7 +100,9 @@ maximo;Máximo;Maximum
 mediana;Mediana;Median
 minimo;Mínimo;Minimum
 minsplit;Mínimo para dividir un nodo:;Minimum to split a node:
+modelo;Modelo;Model
 nn;Redes Neuronales;Neural Networks
+nN;Redes Neuronales;Neural Networks
 nnWar;El modelo no converge con los parámetros actuales, intente modificarlos;The model does not converge with the current parameters, try to modify them
 no;NO;NO
 nodata;No hay datos disponibles;No data available in table
@@ -103,10 +120,11 @@ pares;Gráfico de Pares;Pair Plot
 plotnormal;Gráfico Normalidad;Normal Plot
 poderpred;Poder Predictivo;Predictive Power
 posibLanda;Posibles lambda;Possible lambda
+docpot;Potenciación;Boosting
 primero;Primero;First
 prec;Precisión;Precision
 pred;Predicción;Prediction
-predicnuevos;Predicción Individuos Nuevos;Predict New Cases
+predicnuevos;Predicción Individuos Nuevos;New Cases Prediction
 predm;Predicción del Modelo;Prediction of the Model
 precG;Precisión Global;Global Precision
 promedio;Promedio;Mean
@@ -116,6 +134,8 @@ propP;Partición de Prueba;Test partition:
 punto;Punto;Point
 puntocoma;Punto y coma;Semicolon
 pvalue;P-valor (Shapiro);P-value (Shapiro)
+qda;Análisis Discriminante Cuadrático;Quadratic Discriminant Analysis
+adc;Análisis Discriminante Cuadrático;Quadratic Discriminant Analysis
 q1;Primer Cuartil;First Quartile
 q3;Tercer Cuartil;Third Quartile
 salida;Salida R;R Output 
@@ -130,10 +150,12 @@ selectCapas;Cantidad de capas ocultas:;Number of hidden layers:
 seleccionarPredecir;Seleccionar la variable a predecir:;Select the variable to be predicted:
 selectCat;Seleccionar Categoría:;Select Category:
 selectMod;Seleccionar Modelo:;Select Model:
-seleParModel;Selección y Parametrización del Modelo;Selection and Parameterization of the Model
+seleParModel;Parametrización de Modelos;Parameterization of the Models
+seleModel;Selección de Modelos;Model Selection 
 selidioma;Seleccionar Idioma:;Select Language
 selkernel;Seleccionar un Kernel:;Select kernel:
 selnrounds;Número Máximo de Iteraciones:;Maximum Number of Iterations:
+selpaso;Seleccionar Paso:;Select Step:
 selvar;Seleccionar Variable:;Select Variable:
 selvars;Seleccionar Variables:;Select Variables:
 semilla;Semilla Aleatoria:;Random Seed:
@@ -150,6 +172,7 @@ svml;Soporte Vectorial;Support Vector Machines
 reald;Datos Reales;Real Data
 redPlot;Red Neuronal;Neural Network
 reglas;Reglas;Rules
+rep;Repetición;Repetition
 Rownames;Nombre de Individuos;Row names
 resumen;Resumen Numérico;Numeric Summary
 resumenvar;Resumen Numérico por Variable;Numeric Summary by Variable
@@ -158,6 +181,9 @@ res;Reescalados;Rescaled
 rfl;Bosques Aleatorios;Random Forests
 rl;Regresión Logística;Logistic Regression
 rlr;Regresión Logística Penalizada;Penalized Logistic Regression
+plr;Regresión Logística Penalizada;Penalized Logistic Regression
+probC;Probabilidad de Corte;Cut-Off Probability
+probCstep;Probabilidad de Corte con Paso;Cut-Off Probability by Step
 rocCurva;Curva ROC;ROC Curve
 RocNo;La curva ROC solo aplica para variables binarias;The ROC curve only applies to binary variables
 ruleNumTree;Reglas del árbol número:;Rules of the tree number:
@@ -166,10 +192,13 @@ tablaComp;Tabla Comparativa;Comparison Table
 tasim;Valor del test;Test value
 threshold;Criterios de detención:;Detention criteria:
 tipo;Tipo;Type
+tt;Aprendizaje - Prueba;Training - Testing
+tipoGrafico;Tipo de Gráfico:; Plot Type:
 trans;Transformar;Convert
 ultimo;Ultimo;Last
 variables;Variables;Variables
 varImp;Importancia de Variables;Variable Importance
+docImpV;Importancia de Variables;Variable Importance
 VarsPred;Variables Predictoras:;Predictor Variables:
 version;VERSIÓN DEL SISTEMA;SYSTEM VERSION
 xgb;XGPotenciación;XGBoosting

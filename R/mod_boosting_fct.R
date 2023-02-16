@@ -87,7 +87,7 @@ rules <- function (model, train, var.pred, compact = FALSE, ...){
       if (!rtree)
         prob <- frm[i, ]$yval2[, 5]
       cat("\n")
-      pth <- rpart::path.rpart(model, nodes = as.numeric(names[i]),
+      pth <- path.rpart(model, nodes = as.numeric(names[i]),
                                print.it = FALSE)
       pth <- unlist(pth)[-1]
       if (!length(pth))

@@ -374,26 +374,6 @@ menu.idioma <- function() {
       tags$br()))
 }
 
-infoBoxPROMiDAT <- function(titulo, valor, icono) {
-  tags$div(
-    class = "info-box bg-promidat",
-    tags$span(class = "info-box-icon", icono),
-    tags$div(class="info-box-content", 
-             tags$span(class = "info-box-text", titulo),
-             tags$span(class = "info-box-number", valor)
-    )
-  )
-}
-
-options.run <- function(runid) {
-  tags$div(
-    style = "display: inline-block; width: 100%", 
-    shiny::h4(labelInput("opciones"), 
-              style = "float: left;margin-bottom: 0px;margin-top: 0px;"),
-    tags$button(
-      id = runid, type = "button", class = "run-button action-button", 
-      icon("play"), tags$a(labelInput("ejecutar"), style = "color:white")))
-}
 
 options.base <- function(){
   tags$div(
@@ -402,53 +382,6 @@ options.base <- function(){
               style = "float: left;margin-bottom: 0px;margin-top: 0px;"))
 }
 
-tabBoxPrmdt <- function (..., id = NULL, title = NULL, opciones = NULL) {
-  content <- shiny::tabsetPanel(..., id = id, selected = NULL)
-  content$attribs$class <- "nav-tabs-custom"
-  
-  if (!is.null(title)) {
-    content$children[[1]] <- htmltools::tagAppendChild(
-      content$children[[1]], tags$li(class = "header pull-right", title))
-  }
-  if (!is.null(opciones)) {
-    pos <- length(content$children[[2]]$children) + 1
-    content$children[[2]]$children[[pos]] <- opciones
-  }
-  
-  content
-}
-
-
-tabsOptions <- function(
-  botones = list(icon("cog"), icon("code")), widths = c(50, 100),
-  heights = c(100, 50), tabs.content = list("", "")
-) {
-  res <- ""
-  codeButtons <- ""
-  cant <- length(botones)
-  if(cant == 1) {widgets <- c("center")}
-  if(cant == 2) {widgets <- c("left", "right")}
-  if(cant == 3) {widgets <- c("left", "center", "right")}
-  if(cant == 4) {widgets <- c("left", "centerleft", "centeright", "right")}
-  if(cant == 5) {
-    widgets <- c("left", "centerleft", "center", "centeright", "right")}
-  for (i in 1:cant) {
-    res <- paste0(
-      res, tags$div(
-        class = paste0("box-option box-option-", widgets[i]),
-        style = paste0("width:", widths[i], "%;height:", heights[i], "%;"),
-        tabs.content[[i]]), "\n")
-    codeButtons <- paste0(
-      codeButtons, "<button style='width:", 100/cant, "%' data-widget='", 
-      widgets[i], "'>", botones[[i]], "</button>\n")
-  }
-  res <- paste0(
-    res, tags$div(
-      class = "btn-options", style = "position:relative;", 
-      width = "100%", HTML(codeButtons))
-  )
-  return(tags$div(HTML(res)))
-}
 
 buttonsWizard <- function(
   ids,

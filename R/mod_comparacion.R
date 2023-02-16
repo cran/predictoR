@@ -10,25 +10,26 @@
 mod_comparacion_ui <- function(id){
   ns <- NS(id)
 
-  title_comp <- fluidRow(shiny::h5(style = "float:left;margin-top: 15px;margin-right: 10px;", labelInput("selectCat"),class = "wrapper-tag"),
+  title_comp <- div(conditionalPanel("input['comparacion_ui_1-BoxCom'] != 'tabModelosComp'",
+        div(shiny::h5(style = "float:left;margin-top: 15px;margin-right: 10px;", labelInput("selectCat"),class = "wrapper-tag"),
                          tags$div(class="multiple-select-var",
                                   selectInput(inputId = ns("roc.sel"),label = NULL,
-                                              choices =  "", width = "100%")))
+                                              choices =  "", width = "100%")))))
   tagList(
     tabBoxPrmdt(id = "BoxCom", title = title_comp,
-                tabPanel(title = labelInput("tablaComp"),
+                tabPanel(title = labelInput("tablaComp"), value = "tabtablaComp",
                          withLoader(DT::dataTableOutput(ns("TablaComp"), height="70vh"), 
                                     type = "html", loader = "loader4")),
-                tabPanel(title = labelInput("rocCurva"), 
+                tabPanel(title = labelInput("rocCurva"), value = "tabrocCurva", 
                          withLoader(echarts4rOutput(ns('plot_roc'), height = "70vh"), 
                                     type = "html", loader = "loader4")))
   )
 }
-    
+
 #' comparacion Server Function
 #'
 #' @noRd 
-mod_comparacion_server <- function(input, output, session, updateData, modelos){
+mod_comparacion_server <- function(input, output, session, updateData, modelos, codedioma, modelos2){
   ns <- session$ns
   
   # Update on load testing data
@@ -43,10 +44,11 @@ mod_comparacion_server <- function(input, output, session, updateData, modelos){
     }
   })
   
+  
   # Update Comparison Table
   output$TablaComp <- DT::renderDataTable({
     res      <- data.frame()
-    idioma   <- updateData$idioma
+    idioma   <- codedioma$idioma
     category <- input$roc.sel
     isolate(test <- updateData$datos.prueba)
     isolate(var  <- updateData$variable.predecir)
@@ -97,7 +99,7 @@ mod_comparacion_server <- function(input, output, session, updateData, modelos){
   
   # Update Plot ROC
     output$plot_roc <- renderEcharts4r({
-      idioma        <- updateData$idioma
+      idioma        <- codedioma$idioma
       category      <- input$roc.sel
       mdls          <- modelos
       isolate(test  <- updateData$datos.prueba)
@@ -157,6 +159,8 @@ mod_comparacion_server <- function(input, output, session, updateData, modelos){
         return(NULL)
       })
     })
+    
+    
 }
 
 ## To be copied in the UI

@@ -13,7 +13,9 @@
 }
 
 
-
+.skin-blue .main-header .navbar .sidebar-toggle:hover{
+    background-color: #CBB051;
+}
 /* Logo */  
 .skin-blue .main-header .logo {
   background-color: #CBB051;
@@ -105,3 +107,12 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+
+
+
+
+
+
+

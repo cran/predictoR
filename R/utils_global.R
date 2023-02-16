@@ -1,3 +1,21 @@
+# Funciones tomadas del paquete htmlwidgets
+
+#' Eval character vectors to JS code
+#'
+#' @param ... character vectors to evaluate
+#'
+#' @author Joseline Quiros <joseline.quiros@promidat.com>
+#' @export e_JS
+#' @examples
+#' e_JS('5 * 3')
+#' 
+e_JS <- function (...) 
+{
+  vec <- c(...)
+  vec <- paste(vec, collapse = "\n")
+  structure(vec, class = unique(c("JS_EVAL", oldClass(vec))))
+}
+
 # Validacion comun para todos los modelos
 validar.datos <- function(print = TRUE,variable.predecir,datos.aprendizaje) {
   # Validaciones
@@ -11,13 +29,13 @@ validar.datos <- function(print = TRUE,variable.predecir,datos.aprendizaje) {
 }
 
 # Crea la tabla de comparación entre predicción y datos reales (datos de prueba)
-obj.predic <- function(predic.var = NULL, idioma, test, var.pred){
+obj.predic <- function(prediction = NULL, idioma, test, var.pred){
   real <- test[, var.pred]
-  if(is.numeric(predic.var$prediction)) {
-    predic.var <- factor(predic.var, labels = levels(real))
+  if(is.numeric(prediction)) {
+    prediction <- factor(prediction, labels = levels(real))
   }
   real   <- as.character(real)
-  predi  <- as.character(predic.var$prediction)
+  predi  <- as.character(prediction)
   acerto <- paste0("<span style='color:green'><b>",tr("acerto",idioma),"</b></span>")
   fallo  <- paste0("<span style='color:red'><b>",tr("fallo",idioma),"</b></span>")
   df     <- cbind(real, predi, ifelse(real == predi,
@@ -33,6 +51,7 @@ obj.predic <- function(predic.var = NULL, idioma, test, var.pred){
                        container = sketch,
                        options = list(dom = "frtip", pageLength = 10)))
 }
+
 
 # Cierra un menú según su tabName
 close.menu <- function(tabname = NA, valor = T) {
@@ -98,13 +117,13 @@ indices.generales <- function(MC) {
     MC <- cbind(MC, 0)
   }
   precision.global <- (sum(diag(MC)) / sum(MC)) * 100
-  error.global <- (1 - (sum(diag(MC)) / sum(MC))) * 100
-  precision.clase <- diag(MC)/rowSums(MC) * 100
-  error.clase <- 100 - precision.clase
+  error.global     <- (1 - (sum(diag(MC)) / sum(MC))) * 100
+  precision.clase  <- diag(MC)/rowSums(MC) * 100
+  error.clase      <- 100 - precision.clase
   return(list(precision.global = precision.global,
-              error.global = error.global,
-              precision.clase = precision.clase,
-              error.clase = error.clase))
+              error.global     = error.global,
+              precision.clase  = precision.clase,
+              error.clase      = error.clase))
 }
 
 #Crea la tabla de errores que se grafica en los indices de todos los modelos
@@ -292,7 +311,7 @@ pairs.panels <- function (x, smooth = TRUE, scale = FALSE, density = TRUE, ellip
     if (density) {
       tryd <- try(d <- density(x, na.rm = TRUE, bw = "nrd",
                                adjust = 1.2), silent = TRUE)
-      if (class(tryd) != "try-error") {
+      if (!inherits(tryd, "try-error")) {
         d$y <- d$y/max(d$y)
         lines(d)
       }

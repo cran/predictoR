@@ -10,26 +10,10 @@
 mod_r_forest_ui <- function(id){
   ns <- NS(id)
   
-  codigo.rf  <- list(conditionalPanel("input['r_forest_ui_1-BoxRf'] == 'tabRferror'",
-                                      codigo.monokai(ns("fieldCodeRfPlotError"), height = "10vh")),
-                     conditionalPanel("input['r_forest_ui_1-BoxRf'] == 'tabRfImp'",
-                                      codigo.monokai(ns("fieldCodeRfPlot"), height = "10vh")),
-                     conditionalPanel("input['r_forest_ui_1-BoxRf'] == 'tabRfPred'",
-                                      codigo.monokai(ns("fieldCodeRfPred"), height = "10vh")),
-                     conditionalPanel("input['r_forest_ui_1-BoxRf'] == 'tabRfMC'",
-                                      codigo.monokai(ns("fieldCodeRfMC"), height = "10vh")),
-                     conditionalPanel("input['r_forest_ui_1-BoxRf'] == 'tabRfIndex'",
-                                      codigo.monokai(ns("fieldCodeRfIG"), height = "10vh")))
-  
-  codigo.rf.run  <- list(conditionalPanel("input['r_forest_ui_1-BoxRf'] == 'tabRfModelo'",
-                                      codigo.monokai(ns("fieldCodeRf"), height = "10vh")),
-                     conditionalPanel("input['r_forest_ui_1-BoxRf'] == 'tabRfRules'",
-                                      codigo.monokai(ns("fieldCodeRfRules"), height = "10vh")))
-  
   opc_rf  <-     div(
     conditionalPanel(
-      "input['r_forest_ui_1-BoxRf'] == 'tabRfModelo' || input['r_forest_ui_1-BoxRf'] == 'tabRfRules'",
-      tabsOptions(heights = c(70, 30), tabs.content = list(
+      "input['r_forest_ui_1-BoxRf'] == 'tabRfModelo' || input['r_forest_ui_1-BoxRf'] == 'tabRfRules' || input['r_forest_ui_1-BoxRf'] == 'tabRfProb' || input['r_forest_ui_1-BoxRf'] == 'tabRfProbInd'",
+      tabsOptions(heights = c(70), tabs.content = list(
         list(
           conditionalPanel(
             "input['r_forest_ui_1-BoxRf'] == 'tabRfModelo'",
@@ -39,17 +23,27 @@ mod_r_forest_ui <- function(id){
           conditionalPanel(
             "input['r_forest_ui_1-BoxRf'] == 'tabRfRules'",
             options.base(), tags$hr(style = "margin-top: 0px;"),
-            numericInput(ns("rules.rf.n"),labelInput("ruleNumTree"),1, width = "100%", min = 1))),
-        codigo.rf.run
-      ))),
-    conditionalPanel(
-      "input['r_forest_ui_1-BoxRf'] != 'tabRfModelo' && input['r_forest_ui_1-BoxRf'] != 'tabRfRules'",
-      tabsOptions(botones = list(icon("code")), widths = 100,heights = 55, tabs.content = list(
-        codigo.rf
+            numericInput(ns("rules.rf.n"),labelInput("ruleNumTree"),1, width = "100%", min = 1)),
+          conditionalPanel(
+            "input['r_forest_ui_1-BoxRf'] == 'tabRfProb'",
+            options.run(ns("runProb")), tags$hr(style = "margin-top: 0px;"),
+            div(col_12(selectInput(inputId = ns("cat.sel.prob"),label = labelInput("selectCat"),
+                                   choices =  "", width = "100%"))),
+            div(col_12(numericInput(inputId = ns("by.prob"),label =  labelInput("selpaso"), value = -0.05, min = -0.0, max = 1,  
+                                    width = "100%")))
+          ),
+          conditionalPanel(
+            "input['r_forest_ui_1-BoxRf'] == 'tabRfProbInd'",
+            options.run(ns("runProbInd")), tags$hr(style = "margin-top: 0px;"),
+            div(col_12(selectInput(inputId = ns("cat_probC"),label = labelInput("selectCat"),
+                                   choices =  "", width = "100%"))),
+            div(col_12(numericInput(inputId = ns("val_probC"),label =  labelInput("probC"), value = 0.5, min = 0, max = 1, step = 0.1, 
+                                    width = "100%")))
+          ))
       )))
   )
   
-
+  
   tagList(
     tabBoxPrmdt(
       id = ns("BoxRf"),opciones = opc_rf,
@@ -82,43 +76,86 @@ mod_r_forest_ui <- function(id){
       
       tabPanel(title = labelInput("reglas"), value = "tabRfRules",
                withLoader(verbatimTextOutput(ns("rulesRf")),
+                          type = "html", loader = "loader4")),
+      tabPanel(title = labelInput("probC"), value = "tabRfProbInd",
+               withLoader(verbatimTextOutput(ns("txtrfprobInd")), 
+                          type = "html", loader = "loader4")),
+      tabPanel(title = labelInput("probCstep"), value = "tabRfProb",
+               withLoader(verbatimTextOutput(ns("txtrfprob")), 
                           type = "html", loader = "loader4"))
     )
   )
 }
-    
+
 #' r_forest Server Function
 #'
 #' @noRd 
-mod_r_forest_server <- function(input, output, session, updateData, modelos){
+mod_r_forest_server <- function(input, output, session, updateData, modelos, codedioma, modelos2){
   ns <- session$ns
   nombre.modelo <- rv(x = NULL)
   
+  observeEvent(updateData$datos, {
+    modelos2$rf = list(n = 0, mcs = vector(mode = "list", length = 10))
+  })
   #Cuando se generan los datos de prueba y aprendizaje
   observeEvent(c(updateData$datos.aprendizaje,updateData$datos.prueba), {
-    default.codigo.rf(rf.def = TRUE)
+    
+    variable <- updateData$variable.predecir
+    datos    <- updateData$datos
+    choices  <- as.character(unique(datos[, variable]))
+    n.mtry   <- floor(sqrt(ncol(updateData$datos.aprendizaje)))
+    if(length(choices) == 2){
+      updateSelectInput(session, "cat_probC", choices = choices, selected = choices[1])
+      updateSelectInput(session, "cat.sel.prob", choices = choices, selected = choices[1])
+    }else{
+      updateSelectInput(session, "cat.sel.prob", choices = "")
+      updateSelectInput(session, "cat_probC", choices = "")
+    }
+    updateNumericInput(session, "mtry.rf", value = n.mtry)
+    
     updateTabsetPanel(session, "BoxRf",selected = "tabRfModelo")
   })
-  
+ 
   # Genera el texto del modelo, predicción y mc de RF
   output$txtRf <- renderPrint({
     input$runRf
     tryCatch({
-    default.codigo.rf()
-    train  <- updateData$datos.aprendizaje
-    test   <- updateData$datos.prueba
-    var    <- paste0(updateData$variable.predecir, "~.")
-    mtry   <- isolate(input$mtry.rf)
-    ntree  <- isolate(input$ntree.rf)
-    nombre <- paste0("rfl")
-    
-    modelo <- traineR::train.randomForest(as.formula(var), data = train, mtry = mtry, ntree = ntree, importance = TRUE)
-    pred   <- predict(modelo , test, type = 'class')
-    prob   <- predict(modelo , test, type = 'prob')
-    mc     <- confusion.matrix(test, pred)
-    isolate(modelos$rf[[nombre]] <- list(nombre = nombre, modelo = modelo ,pred = pred, prob = prob , mc = mc))
-    nombre.modelo$x <- nombre
-    print(modelo)
+      default.codigo.rf()
+      train  <- updateData$datos.aprendizaje
+      test   <- updateData$datos.prueba
+      var    <- paste0(updateData$variable.predecir, "~.")
+      mtry   <- isolate(input$mtry.rf)
+      ntree  <- isolate(input$ntree.rf)
+      nombre <- paste0("rfl")
+      
+      modelo <- traineR::train.randomForest(as.formula(var), data = train, mtry = mtry, ntree = ntree, importance = TRUE)
+      prob   <- predict(modelo , test, type = 'prob')
+      
+      variable   <- updateData$variable.predecir
+      choices    <- levels(test[, variable])
+      if(length(choices) == 2){
+        category   <- isolate(input$cat_probC)
+        corte      <- isolate(input$val_probC)
+        Score      <- prob$prediction[,category]
+        Clase      <- test[,variable]
+        results    <- prob.values.ind(Score, Clase, choices, category, corte, print = FALSE)
+        mc     <- results$MC
+        pred   <- results$Prediccion
+      }else{
+        pred   <- predict(modelo , test, type = 'class')
+        mc     <- confusion.matrix(test, pred)
+        pred   <- pred$prediction
+      }
+      
+      isolate({
+        modelos$rf[[nombre]] <- list(nombre = nombre, modelo = modelo ,pred = pred, prob = prob , mc = mc)
+        modelos2$rf$n <- modelos2$rf$n + 1
+        modelos2$rf$mcs[modelos2$rf$n] <- general.indexes(mc = mc)
+        if(modelos2$rf$n > 9)
+          modelos2$rf$n <- 0
+        })
+      nombre.modelo$x <- nombre
+      print(modelo)
     },error = function(e){
       return(invisible(""))
     })
@@ -128,7 +165,7 @@ mod_r_forest_server <- function(input, output, session, updateData, modelos){
   output$rfPrediTable <- DT::renderDataTable({
     test   <- updateData$datos.prueba
     var    <- updateData$variable.predecir
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     obj.predic(modelos$rf[[nombre.modelo$x]]$pred,idioma = idioma, test, var)    
   },server = FALSE)
   
@@ -139,14 +176,14 @@ mod_r_forest_server <- function(input, output, session, updateData, modelos){
   
   #Gráfico de la Matríz de Confusión
   output$plot_rf_mc <- renderPlot({
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     exe(plot.MC.code(idioma = idioma))
     plot.MC(modelos$rf[[nombre.modelo$x]]$mc)
   })
   
   #Tabla de Indices por Categoría 
   output$rfIndPrecTable <- shiny::renderTable({
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     indices.rf <- indices.generales(modelos$rf[[nombre.modelo$x]]$mc)
     
     xtable(indices.prec.table(indices.rf,"rf", idioma = idioma))
@@ -155,7 +192,7 @@ mod_r_forest_server <- function(input, output, session, updateData, modelos){
   
   #Tabla de Errores por Categoría
   output$rfIndErrTable  <- shiny::renderTable({
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     indices.rf <- indices.generales(modelos$rf[[nombre.modelo$x]]$mc)
     #Gráfico de Error y Precisión Global
     output$rfPrecGlob  <-  renderEcharts4r(e_global_gauge(round(indices.rf[[1]],2), tr("precG",idioma), "#B5E391", "#90C468"))
@@ -168,15 +205,16 @@ mod_r_forest_server <- function(input, output, session, updateData, modelos){
   
   #Mostrar Reglas
   output$rulesRf <- renderPrint({
-    idioma <- updateData$idioma
+    idioma <- codedioma$idioma
     n      <- input$rules.rf.n
     modelo <- modelos$rf[[nombre.modelo$x]]$modelo
     modelo$call$data <- updateData$datos.aprendizaje
     tryCatch({
-      updateAceEditor(session,"fieldCodeRfRules",paste0("rulesRandomForest(modelo.rf, ",n,")"))
+      isolate(codedioma$code <- append(codedioma$code, paste0("### reglas\n", "rulesRandomForest(modelo.rf, ",n,")\n")))
+      
       rulesRandomForest(modelo, n)
     },error = function(e){
-             stop(tr("NoDRule", idioma))
+      stop(tr("NoDRule", idioma))
     })
   })
   
@@ -184,7 +222,8 @@ mod_r_forest_server <- function(input, output, session, updateData, modelos){
   # Gráfico de importancia
   output$plot_rf_importance <- renderEcharts4r({
     tryCatch({
-      updateAceEditor(session, "fieldCodeRfPlot", value = rf.importance.plot())
+      cod  <- paste0("### docImpV\n", rf.importance.plot())
+      isolate(codedioma$code <- append(codedioma$code, cod))
       aux <- data.frame(modelos$rf[[nombre.modelo$x]]$modelo$importance)
       aux$MeanDecreaseAccuracy <- abs(aux$MeanDecreaseAccuracy)
       aux   <- aux[order(aux$MeanDecreaseAccuracy, decreasing = T), ]
@@ -206,56 +245,98 @@ mod_r_forest_server <- function(input, output, session, updateData, modelos){
   output$plot_error_rf <- renderEcharts4r({
     tryCatch({
       modelo    <- modelos$rf[[nombre.modelo$x]]$modelo
-      updateAceEditor(session, "fieldCodeRfPlotError", value = plot.rf.error())
-      e_rf_error(modelo)
+      cod  <- paste0("### evolerror\n", plot.rf.error())
+      isolate(codedioma$code <- append(codedioma$code, cod))
+      e_rf_error(modelo,strsplit(tr("numTree", codedioma$idioma), ':')[[1]])
     }, error = function(e){
       return(NULL)
     })
   })
-
-  # Actualiza el código a la versión por defecto
-  default.codigo.rf <- function(rf.def = FALSE){
-    train  <- updateData$datos.aprendizaje
-    mtry <- isolate(input$mtry.rf)
-    if((!is.null(train) & rf.def) | is.na(mtry)){
-      mtry.value <- ifelse(rf.def || is.na(mtry), round(sqrt(ncol(train))), mtry)
-      if(!is.na(mtry)){
-        updateNumericInput(session,"mtry.rf",value = mtry.value)
+  
+  
+  # Genera la probabilidad de corte
+  output$txtrfprob <- renderPrint({
+    input$runProb
+    tryCatch({
+      test       <- updateData$datos.prueba
+      variable   <- updateData$variable.predecir
+      choices    <- levels(test[, variable])
+      category   <- isolate(input$cat.sel.prob)
+      paso       <- isolate(input$by.prob)
+      prediccion <- modelos$rf[[nombre.modelo$x]]$prob 
+      Score      <- prediccion$prediction[,category]
+      Clase      <- test[,variable]
+      prob.values(Score, Clase, choices, category, paso)  
+    },error = function(e){
+      if(length(choices) != 2){
+        showNotification(paste0("ERROR Probabilidad de Corte: ", tr("errorprobC", codedioma$idioma)), type = "error")
+      }else{
+        showNotification(paste0("ERROR: ", e), type = "error")
       }
-    }else{
-      mtry.value <- mtry
-    }
-    
+      return(invisible(""))
+      
+    })
+  })
+  
+  # Genera la probabilidad de corte
+  output$txtrfprobInd <- renderPrint({
+    input$runProbInd
+    tryCatch({
+      test       <- updateData$datos.prueba
+      variable   <- updateData$variable.predecir
+      choices    <- levels(test[, variable])
+      category   <- isolate(input$cat_probC)
+      corte      <- isolate(input$val_probC)
+      prediccion <- modelos$rf[[nombre.modelo$x]]$prob 
+      Score      <- prediccion$prediction[,category]
+      Clase      <- test[,variable]
+      if(!is.null(Score) & length(choices) == 2){
+        results <- prob.values.ind(Score, Clase, choices, category, corte)
+        modelos$rf[[nombre.modelo$x]]$mc   <- results$MC
+        modelos$rf[[nombre.modelo$x]]$pred <- results$Prediccion
+      }
+    },error = function(e){
+      if(length(choices) != 2){
+        showNotification(paste0("ERROR Probabilidad de Corte: ", tr("errorprobC", codedioma$idioma)), type = "error")
+      }else{
+        showNotification(paste0("ERROR: ", e), type = "error")
+      }
+      return(invisible(""))
+      
+    })
+  })
+  
+  # Actualiza el código a la versión por defecto
+  default.codigo.rf <- function(){
     # Se actualiza el código del modelo
     codigo <- rf.modelo(variable.pr = updateData$variable.predecir,
                         ntree = isolate(input$ntree.rf),
-                        mtry = mtry.value)
+                        mtry = isolate(input$mtry.rf))
+    cod  <- paste0("### rfl\n",codigo)
     
-    updateAceEditor(session, "fieldCodeRf", value = codigo)
-
-    # Cambia el código del gráfico de rf
-    updateAceEditor(session, "fieldCodeRfPlotError", value = plot.rf.error())
-    updateAceEditor(session, "fieldCodeRfPlot", value = rf.importance.plot())
-     
-
-    # Se genera el código de la predicción
-    codigo <- rf.prediccion()
-    updateAceEditor(session, "fieldCodeRfPred", value = codigo)
-
-
+    # Se genera el código de la prediccion
+    codigo <- codigo.prediccion("rf")
+    cod    <- paste0(cod,codigo)
+    
     # Se genera el código de la matriz
-    codigo <- rf.MC()
-    updateAceEditor(session, "fieldCodeRfMC", value = codigo)
-
+    codigo <- codigo.MC("rf")
+    cod    <- paste0(cod,codigo)
+    
     # Se genera el código de los indices
     codigo <- extract.code("indices.generales")
-    updateAceEditor(session, "fieldCodeRfIG", value = codigo)
+    codigo  <- paste0(codigo,"\nindices.generales(MC.rf)\n")
+    
+    cod  <- paste0(cod,codigo)
+    
+    # Cambia el código del gráfico de rf
+    
+    isolate(codedioma$code <- append(codedioma$code, cod))
   }
 }
-    
+
 ## To be copied in the UI
 # mod_r_forest_ui("r_forest_ui_1")
-    
+
 ## To be copied in the server
 # callModule(mod_r_forest_server, "r_forest_ui_1")
- 
+

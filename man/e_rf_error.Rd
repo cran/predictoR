@@ -4,10 +4,12 @@
 \alias{e_rf_error}
 \title{Error Evolution}
 \usage{
-e_rf_error(model)
+e_rf_error(model, label = "Trees")
 }
 \arguments{
 \item{model}{a random forest model.}
+
+\item{label}{a label plot.}
 }
 \value{
 echarts4r plot
@@ -17,7 +19,8 @@ Error Evolution
 }
 \examples{
 model <- traineR::train.randomForest(Species~., iris, mtry = 2, ntree = 20)
-e_rf_error(model)
+label <- "Trees"
+e_rf_error(model, label)
 
 
 }
