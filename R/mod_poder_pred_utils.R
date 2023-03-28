@@ -40,7 +40,7 @@ pairs.poder  <- function(datos,variable.predecir, col){
   if(tam == 2){
     col <- base::rev(col)
   }
-  r      <- pairs.panels(var.numericas(datos),bg = col,
+  r      <- pairs.panels(var.numericas(datos),bg = col[datos[,variable.predecir]],
                          pch = 22, main = '', hist.col = col[1], ellipses = FALSE, oma=c(3,3,3,15))
   legend('topright', 
          fill   = unique(col[datos[,variable.predecir]]), 

@@ -222,7 +222,7 @@ app_ui <- function(request) {
           tabItem(tabName = "comparar", 
                   mod_comparacion_ui("comparacion_ui_1")),  
           
-          # Comparación de Modelos
+          # Variación del Error
           tabItem(tabName = "varerr", 
                   mod_varerr_ui("varerr_ui_1")),   
           

@@ -34,10 +34,11 @@ mod_varerr_server <- function(input, output, session, updateData, modelos, coded
   ns <- session$ns
 
   observeEvent(codedioma$idioma, {
+    select   <-  ifelse(is.null(input$model.sel), nombres[1], input$model.sel)
     
     nombres <- list("knnl", "svml", "dtl", "rfl", "xgb" , "bl", "Bayes", "rl", "rlr", "lda", "qda")
     names(nombres) <- tr(c("knnl", "svml", "dtl", "rfl", "xgb" , "bl", "Bayes", "rl", "rlr", "lda", "qda"),codedioma$idioma)
-    updateSelectInput(session, "model.sel", choices = nombres)
+    updateSelectInput(session, "model.sel", choices = nombres, selected = select)
   })
   
     # Update Plot ROC

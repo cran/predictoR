@@ -10,7 +10,7 @@
 mod_acercade_ui <- function(id){
   ns <- NS(id)
   tagList(
-    img(src = "img/Logo.png",
+    img(src = "img/logo.png",
         style = paste0("padding-bottom:20px;margin-left: auto;",
                        "margin-right: auto;display: block;width: 50%;")),
     infoBoxPROMiDAT(
@@ -19,17 +19,16 @@ mod_acercade_ui <- function(id){
     
     infoBoxPROMiDAT(
       labelInput("info"), tags$a(
-        href = "https://www.promidat.com/", style = "color:white;",
-        target = "_blank", "https://www.promidat.com"), icono = icon("info")
+        href = "https://www.promidat.website/", style = "color:white;",
+        target = "_blank", "https://www.promidat.website"), icono = icon("info")
     ),
     
     infoBoxPROMiDAT(
-      labelInput("version"), "3.0.0", icono = icon("file-code"))
+      labelInput("version"), "3.0.1", icono = icon("file-code"))
   )
 }
     
 #' acercade Server Function
-#'
 #' @noRd 
 mod_acercade_server <- function(input, output, session){
   ns <- session$ns
