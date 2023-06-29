@@ -1,7 +1,11 @@
+# Módulo para generar códigos globales
+
+#Genera el código para un modelo indicando el nombre utilizado por traineR
 codigo.modelo <- function(model.name = "knn", variable.pr = NULL, datos = "datos.aprendizaje"){
   return(paste0("modelo.",model.name," <<- train.",model.name,"(",variable.pr,"~., data = ",datos,")\n"))
 }
 
+#Genera el código para la predicción indicando el nombre del modelo generado, verifica si se trata de un modelo con diferentes núcleos
 codigo.prediccion <- function(model.name = "knn", alg = NULL, datos = "datos.prueba"){
   if (is.null(alg)) {
     return(paste0("prediccion.",model.name," <<- predict(modelo.",model.name,", ",datos,", type = 'class')\n"))
@@ -10,7 +14,7 @@ codigo.prediccion <- function(model.name = "knn", alg = NULL, datos = "datos.pru
   }
 }
 
-#Codigo de la matriz de confucion de Bayes
+#Codigo de la matriz de confusión 
 codigo.MC <- function(model.name = "knn", alg = NULL){
   if (is.null(alg)) {
     return(paste0("MC.",model.name," <<- confusion.matrix(datos.prueba, prediccion.",model.name,")","\n"))
@@ -197,6 +201,7 @@ e_xgb_varImp <- function(booster = "gbtree"){
 
 # KNN ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con KNN 
 cv_knn_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
 "numero.filas <- nrow(datos)
@@ -292,6 +297,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # SVM ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con SVM 
 cv_svm_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
 "numero.filas <- nrow(datos)
@@ -349,6 +355,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # DT ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con DT 
 cv_dt_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
 "numero.filas <- nrow(datos)
@@ -391,6 +398,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # RF ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con RF 
 cv_rf_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
 "numero.filas <- nrow(datos)
@@ -432,6 +440,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # XGB ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con XGB 
 cv_xgb_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
 "numero.filas <- nrow(datos)
@@ -484,6 +493,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # BAYES ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con BAYES 
 cv_bayes_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
     "numero.filas <- nrow(datos)
@@ -516,6 +526,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # BOOST ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con BOOSTING 
 cv_boost_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
     "numero.filas <- nrow(datos)
@@ -568,6 +579,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # RL ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con RL 
 cv_rl_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
     "numero.filas <- nrow(datos)
@@ -602,6 +614,7 @@ for(i in 1:cantidad.validacion.cruzada){
 # RLR ---------------------------------------------------------------------------------------------------
 
 
+# Código para generar validación cruzada con RLR 
 cv_rlr_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
     "numero.filas <- nrow(datos)
@@ -644,6 +657,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # LDA ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con LDA 
 cv_lda_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
     "numero.filas <- nrow(datos)
@@ -676,6 +690,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # LDA ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con LDA 
 cv_qda_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
     "numero.filas <- nrow(datos)
@@ -710,6 +725,7 @@ for(i in 1:cantidad.validacion.cruzada){
 
 # Todos ---------------------------------------------------------------------------------------------------
 
+# Código para generar validación cruzada con todos los modelos 
 cv_cv_code <- function(var_pred, dim_v, validaciones, grupo){
   paste0(
     "numero.filas <- nrow(datos)

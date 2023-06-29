@@ -102,22 +102,23 @@ mod_cv_rlr_server <- function(input, output, session, updateData, codedioma){
       M$global  <- NULL
       M$categories <- NULL
       tryCatch({
-        alphas       <- isolate(input$sel_alpha)
-        alpha_labels <- alphas
-        cant.vc   <- isolate(updateData$numValC)
-        MCs.rlr   <- vector(mode = "list")
-        datos     <- isolate(updateData$datos)
-        numGrupos <- isolate(updateData$numGrupos)
-        grupos    <- isolate(updateData$grupos)
+        alphas       <- isolate(input$sel_alpha)# Algoritmos seleccionados para CV (vector)
+        alpha_labels <- alphas # Algoritmos seleccionados para CV (vector)
+        cant.vc   <- isolate(updateData$numValC)# Obtiene cantidad de validaciones a realizar
+        MCs.rlr   <- vector(mode = "list")# Lista de listas que va a guardar todas las MCs
+        datos     <- isolate(updateData$datos)# Obtiene los datos
+        numGrupos <- isolate(updateData$numGrupos)# Obtiene la cantidad de grupos
+        grupos    <- isolate(updateData$grupos)# Obtiene los grupos de cada validación
         scales    <- isolate(input$scale_cvrlr)
-        variable  <- updateData$variable.predecir
+        variable  <- updateData$variable.predecir# Variable a predecir
         var_      <- paste0(variable, "~.")
-        category  <- isolate(levels(updateData$datos[,variable]))
-        dim_v     <- isolate(length(category))
-        nombres   <- vector(mode = "character", length = length(alphas))
-        Corte     <- isolate(input$cvrlr_step)
-        cat_sel   <- isolate(input$cvrlr_cat)
+        category  <- isolate(levels(updateData$datos[,variable]))# Categorías de la variable a predecir
+        dim_v     <- isolate(length(category))# Cantidad de categorías (para generar las matrices de confusión)
+        nombres   <- vector(mode = "character", length = length(alphas))# Almacena el nombre de los modelos (vector en caso de varios kernels, uno solo en caso que no aplican los kernels)
+        Corte     <- isolate(input$cvrlr_step)# Obtiene la probabilidad de corte para el modelo
+        cat_sel   <- isolate(input$cvrlr_cat)# Obtiene la categoría de la variable a predecir seleccionada para aplicar probabilidad de corte
         
+        # Modifica las etiquetas de los algoritmos para que no se muestre 0 y 1 sino Ridge y Lasso
         alpha_labels[which(alpha_labels == 0)] = "Ridge"
         alpha_labels[which(alpha_labels == 1)] = "Lasso"
         
@@ -126,38 +127,55 @@ mod_cv_rlr_server <- function(input, output, session, updateData, codedioma){
             showNotification("Debe seleccionar al menos un alpha")
         }
         for (alpha in 1:length(alphas)){
+          # Llena la lista de listas de MCs con los nombres de cada modelo
           MCs.rlr[[paste0("MCs.",alpha_labels[alpha])]] <- vector(mode = "list", length = cant.vc)
+          # Guarda los nombres para las matrices individuales
           nombres[alpha] <- paste0("MC.",alpha_labels[alpha])
         }
         
         for (i in 1:cant.vc){
+          # Lista de Matrices, se identifican con el nombre del modelo
           MC.rlr <- vector(mode = "list", length = length(alphas))
           names(MC.rlr) <- nombres
+          # Crea la matriz que almacena la MC de confusión
+          # Toma en cuenta las dimensiones de la variable a predecir con dim_v
           for (alpha in 1:length(alphas)){
             MC.rlr[[alpha]] <- matrix(rep(0, dim_v * dim_v), nrow = dim_v)
           }
           
           for (k in 1:numGrupos){
+            # Obtiene los grupos de cada validación
             muestra   <- grupos[[i]][[k]]
             ttraining <- datos[-muestra, ]
             ttesting  <- datos[muestra, ]
             
             for (j in 1:length(alphas)){
+              # Genera el modelo
               modelo <- traineR::train.glmnet(as.formula(var_), 
                                               data        = ttraining, 
                                               standardize = as.logical(scales), 
                                               alpha       = alphas[j], 
                                               family      = 'multinomial' )
               if(length(category) == 2){
+                # Se define la categoría positiva y negativa
+                # Categoría positiva se asume es la seleccionada 
                 positive    <- category[which(category == cat_sel)]
                 negative    <- category[which(category != cat_sel)]
+                # Genera las probabilidades de predicción
                 prediccion  <- predict(modelo, ttesting, type = "prob")
+                # Guarda la clase verdadera
                 Clase       <- ttesting[,variable]
+                # Obtiene las probabilidades para la categoría seleccionada
                 Score       <- prediccion$prediction[,positive,]
+                # Genera la predicción con el corte y categoría seleccionada
                 Prediccion  <- ifelse(Score  > Corte, positive, negative)
+                # Crea la MC
                 MC          <- table(Clase , Pred = factor(Prediccion, levels = category))
+                # Suma la MC
                 MC.rlr[[j]] <- MC.rlr[[j]] + MC
               }else{
+                # Para el caso de 3 o más categorías
+                # Predicción, MC 
                 prediccion  <- predict(modelo, ttesting)
                 MC          <- confusion.matrix(ttesting, prediccion)
                 MC.rlr[[j]] <- MC.rlr[[j]] + MC
@@ -165,12 +183,15 @@ mod_cv_rlr_server <- function(input, output, session, updateData, codedioma){
             }
           }
           
+          # Guarda las matrices en la lista de matrices
           for (l in 1:length(MCs.rlr)){
             MCs.rlr[[l]][[i]] <- MC.rlr[[l]]
           }
         }
         
+        # Asigna los valores a las variables reactivas
         M$MCs.rlr  <- MCs.rlr
+        # Se calculan los indices para realizar los gráficos
         resultados <- indices.cv(category, cant.vc, alpha_labels, MCs.rlr)
         M$grafico  <- resultados$grafico
         M$global   <- resultados$global
@@ -192,6 +213,7 @@ mod_cv_rlr_server <- function(input, output, session, updateData, codedioma){
     
     
     
+    # Gráfico de la precisión Global
     output$e_rlr_glob  <-  renderEcharts4r({
       input$btn_cv_rlr
       type    <- input$plot_type_p
@@ -209,6 +231,7 @@ mod_cv_rlr_server <- function(input, output, session, updateData, codedioma){
         return(NULL)
     })    
     
+    # Gráfico de error Global
     output$e_rlr_error  <-  renderEcharts4r({
       idioma    <- codedioma$idioma
       type      <- input$plot_type_p
@@ -227,6 +250,7 @@ mod_cv_rlr_server <- function(input, output, session, updateData, codedioma){
     })
     
     
+    # Gráfico de precisión por categoría
     output$e_rlr_category  <-  renderEcharts4r({
       idioma <- codedioma$idioma
       cat    <- input$cv.cat.sel
@@ -245,6 +269,7 @@ mod_cv_rlr_server <- function(input, output, session, updateData, codedioma){
     })
     
     
+    # Gráfico de error por categoría
     output$e_rlr_category_err  <-  renderEcharts4r({
       idioma <- codedioma$idioma
       cat    <- input$cv.cat.sel

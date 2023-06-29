@@ -15,7 +15,7 @@ mod_l_regression_ui <- function(id){
       conditionalPanel(
         "input['l_regression_ui_1-BoxRl'] == 'tabRlModelo' || input['l_regression_ui_1-BoxRl'] == 'tabRlProb' || input['l_regression_ui_1-BoxRl'] == 'tabRlProbInd'",
         tabsOptions(heights = c(70, 30), tabs.content = list(
-          list(conditionalPanel("input['l_regression_ui_1-BoxRl']   == 'tabKknModelo'",
+          list(conditionalPanel("input['l_regression_ui_1-BoxRl']   == 'tabRlModelo'",
             options.run(ns("runRl")), tags$hr(style = "margin-top: 0px;")),
             conditionalPanel(
               "input['l_regression_ui_1-BoxRl'] == 'tabRlProb'",
@@ -162,7 +162,7 @@ mod_l_regression_server <- function(input, output, session, updateData, modelos,
   #Gráfico de la Matríz de Confusión
   output$plot_rl_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$rl[[nombre.modelo$x]]$mc)
   })
   

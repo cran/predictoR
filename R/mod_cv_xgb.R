@@ -104,27 +104,29 @@ mod_cv_xgb_server <- function(input, output, session, updateData, codedioma){
       M$categories <- NULL
       tryCatch({
         boosters    <- isolate(input$sel_booster)
-        cant.vc   <- isolate(updateData$numValC)
-        MCs.dt    <- vector(mode = "list")
-        datos     <- isolate(updateData$datos)
-        numGrupos <- isolate(updateData$numGrupos)
-        grupos    <- isolate(updateData$grupos)
+        cant.vc   <- isolate(updateData$numValC)# Obtiene cantidad de validaciones a realizar
+        MCs.dt    <- vector(mode = "list")# Lista de listas que va a guardar todas las MCs
+        datos     <- isolate(updateData$datos)# Obtiene los datos
+        numGrupos <- isolate(updateData$numGrupos)# Obtiene la cantidad de grupos
+        grupos    <- isolate(updateData$grupos)# Obtiene los grupos de cada validación
         max_depth <- isolate(input$max_depth)
         n_rounds  <- isolate(input$n_rounds)
-        variable  <- updateData$variable.predecir
+        variable  <- updateData$variable.predecir# Variable a predecir
         var_      <- paste0(variable, "~.")
-        category  <- isolate(levels(updateData$datos[,variable]))
-        dim_v     <- isolate(length(category))
-        nombres   <- vector(mode = "character", length = length(boosters))
-        Corte     <- isolate(input$cvxgb_step)
-        cat_sel   <- isolate(input$cvxgb_cat)
+        category  <- isolate(levels(updateData$datos[,variable]))# Categorías de la variable a predecir
+        dim_v     <- isolate(length(category))# Cantidad de categorías (para generar las matrices de confusión)
+        nombres   <- vector(mode = "character", length = length(boosters))# Almacena el nombre de los modelos (vector en caso de varios kernels, uno solo en caso que no aplican los kernels)
+        Corte     <- isolate(input$cvxgb_step)# Obtiene la probabilidad de corte para el modelo
+        cat_sel   <- isolate(input$cvxgb_cat)# Obtiene la categoría de la variable a predecir seleccionada para aplicar probabilidad de corte
         
         if(length(boosters)<1){
           if(M$times != 0)
             showNotification("Debe seleccionar al menos un booster")
         }
         for (booster in 1:length(boosters)){
+          # Llena la lista de listas de MCs con los nombres de cada modelo
           MCs.dt[[paste0("MCs.",boosters[booster])]] <- vector(mode = "list", length = cant.vc)
+          # Guarda los nombres para las matrices individuales
           nombres[booster] <- paste0("MC.",boosters[booster])
         }
         

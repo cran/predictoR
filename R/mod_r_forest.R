@@ -177,7 +177,7 @@ mod_r_forest_server <- function(input, output, session, updateData, modelos, cod
   #Gráfico de la Matríz de Confusión
   output$plot_rf_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$rf[[nombre.modelo$x]]$mc)
   })
   

@@ -1,10 +1,8 @@
 Package: predictoR
 Title: Predictive Data Analysis System
-Version: 3.0.1
+Version: 3.0.3
 Authors@R: c(person(given = "Oldemar", family = "Rodriguez", role = c("aut", "cre"), email = "oldemar.rodriguez@ucr.ac.cr"),
-            person(given = "Diego", family = "Jiménez", role = c("ctb", "prg")),
-            person(given = "Andres", family = "Navarro", role = c("ctb", "prg")),
-            person(given = "Joseline", family = "Quirós", role = c("ctb", "prg")))
+            person(given = "Diego", family = "Jiménez", role = c("ctb", "prg")))
 Description: Perform a supervised data analysis on a database through a 'shiny' graphical interface. It includes methods such as K-Nearest Neighbors, Decision Trees, ADA Boosting, Extreme Gradient Boosting, Random Forest, Neural Networks, Deep Learning, Support Vector Machines and Bayesian Methods.
 License: GPL (>= 2)
 Imports: DT (>= 0.27), dplyr (>= 1.1.0), shiny (>= 1.7.4), golem (>=
@@ -20,11 +18,9 @@ URL: https://promidat.website/,https://github.com/PROMiDAT/predictoR
 BugReports: https://github.com/PROMiDAT/predictoR/issues
 RoxygenNote: 7.1.2
 NeedsCompilation: no
-Packaged: 2023-03-28 15:06:22 UTC; promidat06
+Packaged: 2023-06-28 17:59:58 UTC; promidat05
 Author: Oldemar Rodriguez [aut, cre],
-  Diego Jiménez [ctb, prg],
-  Andres Navarro [ctb, prg],
-  Joseline Quirós [ctb, prg]
+  Diego Jiménez [ctb, prg]
 Maintainer: Oldemar Rodriguez <oldemar.rodriguez@ucr.ac.cr>
 Repository: CRAN
-Date/Publication: 2023-03-28 22:10:06 UTC
+Date/Publication: 2023-06-29 16:40:05 UTC

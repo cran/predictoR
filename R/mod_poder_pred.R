@@ -118,7 +118,7 @@ mod_poder_pred_server <- function(id,       updateData, codedioma){
       tryCatch({
         variable  <- updateData$variable.predecir
         datos     <- updateData$datos
-        cod.pairs <- code.pairs.poder(variable)
+        cod.pairs <- code.pairs_poder(variable)
         idioma    <- codedioma$idioma
         res       <-    NULL
         cod  <- paste0("### pares\n",cod.pairs)
@@ -130,7 +130,7 @@ mod_poder_pred_server <- function(id,       updateData, codedioma){
         isolate(codedioma$code <- append(codedioma$code, cod))
         if (ncol(var.numericas(datos)) >= 2) {
           if(ncol(var.numericas(datos)) <= 25){
-            pairs.poder(datos,variable, colores)
+            pairs_poder(datos,variable, colores)
           }else{
             showNotification(tr("bigPlot",idioma), duration = 10, type = "message")
             

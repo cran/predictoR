@@ -38,7 +38,7 @@ mod_comparacion_server <- function(input, output, session, updateData, modelos, 
     datos        <- updateData$datos
     choices      <- as.character(unique(datos[, variable]))
     if(length(choices) == 2){
-      updateSelectInput(session, "roc.sel", choices = choices, selected = choices[1])
+      updateSelectInput(session, "roc.sel", choices = choices, selected = choices[1]) # Actualiza las opciones de la curva ROC
     }else{
       updateSelectInput(session, "roc.sel", choices = "")
     }
@@ -47,44 +47,43 @@ mod_comparacion_server <- function(input, output, session, updateData, modelos, 
   
   # Update Comparison Table
   output$TablaComp <- DT::renderDataTable({
-    res      <- data.frame()
+    res      <- data.frame() # DF de respuesta
     idioma   <- codedioma$idioma
     category <- input$roc.sel
     isolate(test <- updateData$datos.prueba)
     isolate(var  <- updateData$variable.predecir)
     tryCatch({
-    for (nom in names(modelos)) {
+    for (nom in names(modelos)) { # Recorre todos los modelos 
       if(!is.null(modelos[[nom]])){
-          for (alg in modelos[[nom]]) {
+          for (alg in modelos[[nom]]) { # Recorre cada algoritmo de los modelos
             ind <- general.indexes(mc = alg$mc)
             new <- data.frame(
               OAccuracy = ind$overall.accuracy,
               EAccuracy = ind$overall.error
-            )
+            ) #Precisión y error global
             
-            for (cat in names(ind$category.accuracy)) {
-              new[[cat]] <- ind$category.accuracy[[cat]]
+            for (cat in names(ind$category.accuracy)) { # Recorre cada categoría de la variable a predecir
+              new[[cat]] <- ind$category.accuracy[[cat]] # Guarda la precisión de la categoría
             }
-            if(length(ind$category.accuracy) ==2){
+            if(length(ind$category.accuracy) ==2){ # Solo para 2 categorías
               if(!startsWith(alg$nombre, "rlr")){
-                new$roc <- ROC.area(alg$prob$prediction[,category], test[,var])
+                new$roc <- ROC.area(alg$prob$prediction[,category], test[,var]) # Calcula el area bajo la curva
               }else{
-                new$roc <- ROC.area(alg$prob$prediction[,category,], test[,var])
+                new$roc <- ROC.area(alg$prob$prediction[,category,], test[,var])# Calcula el area bajo la curva para RLR
               }
             }else{
               new$roc <- NULL
             }
-            row.names(new) <- split_name(alg$nombre, idioma)
+            row.names(new) <- split_name(alg$nombre, idioma) # Obtiene el nombre del modelo y algoritmo
             res            <- rbind(res, new)
           } 
       }
-      
     }
-    colnames(res)[1]           <- tr('precG', idioma)
-    colnames(res)[2]           <- tr('errG', idioma)
+    colnames(res)[1]           <- tr('precG', idioma) # Columna PGlobal
+    colnames(res)[2]           <- tr('errG', idioma) # Columna EGlobal
 
     if(length(ind$category.accuracy) ==2){
-      colnames(res)[dim(res)[2]] <- tr('aROC', idioma)
+      colnames(res)[dim(res)[2]] <- tr('aROC', idioma)# Columna Area ROC
     }
     
     res[]                      <- lapply(res, as.numeric)
@@ -100,31 +99,35 @@ mod_comparacion_server <- function(input, output, session, updateData, modelos, 
   # Update Plot ROC
     output$plot_roc <- renderEcharts4r({
       idioma        <- codedioma$idioma
-      category      <- input$roc.sel
+      category      <- input$roc.sel # Categoría seleccionada
       mdls          <- modelos
       isolate(test  <- updateData$datos.prueba)
       isolate(var   <- updateData$variable.predecir)
       tryCatch({
       if(!is.null(test) & length(levels(test[,var])) == 2) {
-        res    <- list(list(type = "line", color = "#5F5C5C" , data = list(c(1,0), c(0,1))))
+        res    <- list(list(type = "line", color = "#5F5C5C" , data = list(c(1,0), c(0,1)))) # Punto inicial del gráfico
         n2     <- 0
         i      <- 2
-        for (nom in names(mdls)) {
+        
+        # Recorre y obtiene la cantidad de modelos
+        for (nom in names(mdls)) { 
           if(!is.null(mdls[[nom]])){
             for (alg in mdls[[nom]]) {
               n2 <- n2 + 1
             } 
           }
         }   
+        # Genera colores de las líneas para cada modelo
         colores    <- gg_color_hue(n2)
         for (nom in names(mdls)) {
           if(!is.null(mdls[[nom]])){
             for (alg in mdls[[nom]]) {
               if(!startsWith(alg$nombre, "rlr")){
-                roc.data <- roc.values( alg$prob$prediction[,category], test[,var])
+                roc.data <- roc.values( alg$prob$prediction[,category], test[,var]) # Calcula los puntos para el gráfico
               }else{
-                roc.data <- roc.values(alg$prob$prediction[,category,], test[,var])
+                roc.data <- roc.values(alg$prob$prediction[,category,], test[,var])# Calcula los puntos para el gráfico en RLR
               }
+              # Se agregan al gráfico para crear la línea de la curva del modelo
               res[[i]] <- list(type  = "line", 
                                data  = roc.data,  
                                color = colores[i - 1],
@@ -135,15 +138,17 @@ mod_comparacion_server <- function(input, output, session, updateData, modelos, 
                                                                       "Number.parseFloat(params.value[0]).toFixed(4) +", 
                                                                       "'<br/><b>Y: </b>' +",
                                                                       "Number.parseFloat(params.value[1]).toFixed(4))}"))))
-              i <- i + 1
+              i <- i + 1 # Aumenta el contador para los índices
             } 
           }
         }
+        # Configuraciones
         opts <- list(
           xAxis = list(show = TRUE, inverse = TRUE),
           yAxis = list(show = TRUE),
           series = res)
         
+        # Crea el gráfico
         comp_plot <- e_charts() |>  
                           e_list(opts) |>  
                           e_legend(type = "scroll", bottom = 1) |>  

@@ -106,9 +106,9 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
     variable <- updateData$variable.predecir
     datos    <- updateData$datos
     choices  <- as.character(unique(datos[, variable]))
-    if(length(choices) == 2){
-      updateSelectInput(session, "cat_probC", choices = choices, selected = choices[1])
-      updateSelectInput(session, "cat.sel.prob", choices = choices, selected = choices[1])
+    if(length(choices) == 2){ # Verifica que la variable a predecir tenga solo 2 categorías
+      updateSelectInput(session, "cat_probC", choices = choices, selected = choices[1])# Actualiza las categorías para probabilidad de corte Individual
+      updateSelectInput(session, "cat.sel.prob", choices = choices, selected = choices[1])# Actualiza las categorías para probabilidad de corte múltiple
     }else{
       updateSelectInput(session, "cat.sel.prob", choices = "")
       updateSelectInput(session, "cat_probC", choices = "")
@@ -130,7 +130,7 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
     maxdepth<-isolate(input$maxdepth.boosting)
     minsplit<-isolate(input$minsplit.boosting) 
     coeff   <-isolate(input$coeff.boosting)
-    nombre  <- paste0("bl")
+    nombre  <- paste0("bl-", coeff)
     modelo  <- traineR::train.adabag(as.formula(var), data = train, mfinal = iter,coeflearn = coeff,
                                     control = rpart.control(minsplit =minsplit, maxdepth = maxdepth))
     prob   <- predict(modelo , test, type = 'prob')
@@ -138,14 +138,16 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
     variable   <- updateData$variable.predecir
     choices    <- levels(test[, variable])
     if(length(choices) == 2){
-      category   <- isolate(input$cat_probC)
-      corte      <- isolate(input$val_probC)
-      Score      <- prob$prediction[,category]
-      Clase      <- test[,variable]
-      results    <- prob.values.ind(Score, Clase, choices, category, corte, print = FALSE)
+      # Para variable a predecir con 2 categorías
+      category   <- isolate(input$cat_probC)# Obtiene la categoría seleccionada
+      corte      <- isolate(input$val_probC)# Obtiene la probabilidad de corte seleccionada
+      Score      <- prob$prediction[,category]# Guarda Scores
+      Clase      <- test[,variable]# Guarda clases de la variable a predecir
+      results    <- prob.values.ind(Score, Clase, choices, category, corte, print = FALSE)# Calcula las predicciones y MC
       mc     <- results$MC
       pred   <- results$Prediccion
     }else{
+      # Para variable a predecir con más de 2 categorías
       pred   <- predict(modelo , test, type = 'class') 
       mc     <- confusion.matrix(test, pred)
       pred   <- pred$prediction
@@ -153,10 +155,10 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
 
     isolate({
       modelos$boosting[[nombre]] <- list(nombre = nombre, modelo = modelo, pred = pred, prob = prob , mc = mc)
-      modelos2$boosting$n <- modelos2$boosting$n + 1
-      modelos2$boosting$mcs[modelos2$boosting$n] <- general.indexes(mc = mc)
-      if(modelos2$boosting$n > 9)
-        modelos2$boosting$n <- 0
+      modelos2$boosting$n <- modelos2$boosting$n + 1# Aumenta contador de modelos generados
+      modelos2$boosting$mcs[modelos2$boosting$n] <- general.indexes(mc = mc)# Guarda MC 
+      if(modelos2$boosting$n > 9)# Verifica que no hayan mas de 10 modelos en "cola"
+        modelos2$boosting$n <- 0 # Reinicia el contador de modelos
     
       })
     nombre.modelo$x <- nombre
@@ -183,7 +185,7 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
   #Gráfico de la Matríz de Confusión
   output$plot_boosting_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$boosting[[nombre.modelo$x]]$mc)
   })
   
@@ -221,7 +223,7 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
     }
   )})
   
-  # Genera la probabilidad de corte
+  # Genera la probabilidad de corte múltiple
   output$txtboostprob <- renderPrint({
     input$runProb
     tryCatch({
@@ -245,7 +247,7 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
     })
   })
   
-  # Genera la probabilidad de corte
+  # Genera la probabilidad de corte individual
   output$txtboostprobInd <- renderPrint({
     input$runProbInd
     tryCatch({
@@ -277,12 +279,13 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
   output$plot_boosting_import <- renderEcharts4r({
     cod <- ifelse(input$fieldCodeBoostingPlotImport == "",boosting.plot.import(),input$fieldCodeBoostingPlotImport)
     tryCatch({
-      imp   <- modelos$boosting[[nombre.modelo$x]]$modelo$importance
-      color <- gg_color_hue(length(imp))
+      
+      imp   <- modelos$boosting[[nombre.modelo$x]]$modelo$importance #Importancia de variables del modelo
+      color <- gg_color_hue(length(imp)) # Genera colores del tamaño de columnas
       aux   <- data.frame(importancia = imp, color = color) 
       aux$nombre      <- row.names(aux) 
       aux$importancia <- abs(aux$importancia) 
-      aux <- aux[order(aux$importancia, decreasing = T), ]
+      aux <- aux[order(aux$importancia, decreasing = T), ] # Ordena el df
       aux |>  e_charts(nombre) |>  e_bar(importancia, name = var) |>   
         e_tooltip() |>  e_datazoom(show = F) |>  e_show_loading()|>
         e_add_nested("itemStyle", color) |>   
@@ -299,7 +302,7 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
     modelo <- modelos$boosting[[nombre.modelo$x]]$modelo
     cod <- ifelse(input$fieldCodeBoostingPlot == "",boosting.plot(),input$fieldCodeBoostingPlot)
     tryCatch({
-      error(modelo, train) -> evol.train
+      error(modelo, train) -> evol.train # Evolución del error
       e_evol_error(evol.train,strsplit(tr("numTree", codedioma$idioma), ':')[[1]])
     }, error = function(e) {
       return(NULL)

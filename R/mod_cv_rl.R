@@ -97,55 +97,75 @@ mod_cv_rl_server <- function(input, output, session, updateData, codedioma){
       M$categories <- NULL
       tryCatch({
         
-        cant.vc   <- updateData$numValC
-        MCs.rl    <- vector(mode = "list")
-        datos     <- isolate(updateData$datos)
-        numGrupos <- updateData$numGrupos
-        grupos    <- updateData$grupos
-        variable  <- isolate(updateData$variable.predecir)
+        cant.vc   <- updateData$numValC# Obtiene cantidad de validaciones a realizar
+        MCs.rl    <- vector(mode = "list")# Lista de listas que va a guardar todas las MCs
+        datos     <- isolate(updateData$datos)# Obtiene los datos
+        numGrupos <- updateData$numGrupos# Obtiene la cantidad de grupos
+        grupos    <- updateData$grupos# Obtiene los grupos de cada validación
+        variable  <- isolate(updateData$variable.predecir)# Variable a predecir
         var_      <- paste0(variable, "~.")
-        category  <- isolate(levels(updateData$datos[,variable]))
-        dim_v     <- isolate(length(category))
-        nombre    <- "MC.rl"
-        Corte     <- isolate(input$cvrl_step)
-        cat_sel   <- isolate(input$cvrl_cat)
+        category  <- isolate(levels(updateData$datos[,variable]))# Categorías de la variable a predecir
+        dim_v     <- isolate(length(category))# Cantidad de categorías (para generar las matrices de confusión)
+        nombre    <- "MC.rl"# Almacena el nombre de los modelos (vector en caso de varios kernels, uno solo en caso que no aplican los kernels)
+        Corte     <- isolate(input$cvrl_step)# Obtiene la probabilidad de corte para el modelo
+        cat_sel   <- isolate(input$cvrl_cat)# Obtiene la categoría de la variable a predecir seleccionada para aplicar probabilidad de corte
 
+        # Llena la lista de listas de MCs con los nombres de cada modelo
         MCs.rl[["MCs.rl"]] <- vector(mode = "list", length = cant.vc)
 
+        # Ejecuta Validación Cruzada
         for (i in 1:cant.vc){
+          # Lista de Matrices, se identifican con el nombre del modelo
           MC.rl <- vector(mode = "list", length = 1)
           names(MC.rl) <- nombre 
+          # Crea la matriz que almacena la MC de confusión
+          # Toma en cuenta las dimensiones de la variable a predecir con dim_v
           MC.rl[[1]] <- matrix(rep(0, dim_v * dim_v), nrow = dim_v)
           
           for (k in 1:numGrupos){
+            # Obtiene los grupos de cada validación
             muestra   <- grupos[[i]][[k]]
             ttraining <- datos[-muestra, ]
             ttesting  <- datos[muestra, ]
             j <- 1
-              modelo      <- train.glm(as.formula(var_), 
+            # Genera el modelo
+            modelo      <- train.glm(as.formula(var_), 
                                        data = ttraining)
               if(length(category) == 2){
+                # Se define la categoría positiva y negativa
+                # Categoría positiva se asume es la seleccionada 
                 positive    <- category[which(category == cat_sel)]
                 negative    <- category[which(category != cat_sel)]
+                # Genera las probabilidades de predicción
                 prediccion  <- predict(modelo, ttesting, type = "prob")
+                # Guarda la clase verdadera
                 Clase       <- ttesting[,variable]
+                # Obtiene las probabilidades para la categoría seleccionada
                 Score       <- prediccion$prediction[,positive]
+                # Genera la predicción con el corte y categoría seleccionada
                 Prediccion  <- ifelse(Score  > Corte, positive, negative)
+                # Crea la MC
                 MC          <- table(Clase , Pred = factor(Prediccion, levels = category))
+                # Suma la MC
                 MC.rl[[j]] <- MC.rl[[j]] + MC
               }else{
+                # Para el caso de 3 o más categorías
+                # Predicción, MC 
                 prediccion  <- predict(modelo, ttesting)
                 MC          <- confusion.matrix(ttesting, prediccion)
                 MC.rl[[j]] <- MC.rl[[j]] + MC
               }
           }
           
+          # Guarda las matrices en la lista de matrices
           for (l in 1:length(MCs.rl)){
             MCs.rl[[l]][[i]] <- MC.rl[[l]]
           }
         }
         
+        # Asigna los valores a las variables reactivas
         M$MCs.rl <- MCs.rl
+        # Se calculan los indices para realizar los gráficos
         resultados  <- indices.cv(category, cant.vc, c("rl"), MCs.rl)
         resultados$grafico$name <- tr(c("rl"),codedioma$idioma)
         M$grafico   <- resultados$grafico
@@ -168,6 +188,7 @@ mod_cv_rl_server <- function(input, output, session, updateData, codedioma){
     
     
     
+    # Gráfico de la precisión Global
     output$e_rl_glob  <-  renderEcharts4r({
       input$btn_cv_rl
       type    <- input$plot_type_p
@@ -185,6 +206,7 @@ mod_cv_rl_server <- function(input, output, session, updateData, codedioma){
         return(NULL)
     })    
     
+    # Gráfico de error Global
     output$e_rl_error  <-  renderEcharts4r({
       idioma    <- codedioma$idioma
       type      <- input$plot_type_p
@@ -203,6 +225,7 @@ mod_cv_rl_server <- function(input, output, session, updateData, codedioma){
     })
     
     
+    # Gráfico de precisión por categoría
     output$e_rl_category  <-  renderEcharts4r({
       idioma <- codedioma$idioma
       cat    <- input$cv.cat.sel
@@ -221,6 +244,7 @@ mod_cv_rl_server <- function(input, output, session, updateData, codedioma){
     })
     
     
+    # Gráfico de error por categoría
     output$e_rl_category_err  <-  renderEcharts4r({
       idioma <- codedioma$idioma
       cat    <- input$cv.cat.sel

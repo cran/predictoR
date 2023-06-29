@@ -173,7 +173,7 @@ mod_d_tree_server <- function(input, output, session, updateData, modelos, coded
   #Gráfico de la Matríz de Confusión
   output$plot_dt_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$dt[[nombre.modelo$x]]$mc)
   })
   

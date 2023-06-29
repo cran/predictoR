@@ -187,7 +187,7 @@ mod_penalized_l_r_server <- function(input, output, session, updateData, modelos
   #Gráfico de la Matríz de Confusión
   output$plot_rlr_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$rlr[[nombre.modelo$x]]$mc)
   })
   
@@ -250,8 +250,8 @@ mod_penalized_l_r_server <- function(input, output, session, updateData, modelos
       pred   <- predict(modelo , updateData$datos.prueba, type = 'class', s = exp(landa) )
       mc     <- confusion.matrix(updateData$datos.prueba, pred)
       
-      isolate(modelos$rlr[[nombre.modelo$x]]$pred <- pred)
-      isolate(modelos$rlr[[nombre.modelo$x]]$mc   <- mc)
+      modelos$rlr[[nombre.modelo$x]]$pred <- pred
+      modelos$rlr[[nombre.modelo$x]]$mc   <- mc
     }
     return(landa)
   }
@@ -265,7 +265,7 @@ mod_penalized_l_r_server <- function(input, output, session, updateData, modelos
     lambda   <- input$landa
     cv.glm   <- cv$cv.glm
     lambda   <- ifelse(is.null(lambda), round(log(mean(c(cv.glm$lambda.min, cv.glm$lambda.1se))),5), lambda)
-    pos      <- select.beta(modelo, lambda)
+    pos      <- select_beta(modelo, lambda)
     isolate(codedioma$code <- append(codedioma$code, paste0("### betas\n","modelo.glmnet.",tipo,"$beta[['",category,"']][,",pos,"]")))
     print(modelo$beta[[category]][,pos])
   })
@@ -279,8 +279,8 @@ mod_penalized_l_r_server <- function(input, output, session, updateData, modelos
       test       <- updateData$datos.prueba
       variable   <- updateData$variable.predecir
       choices    <- levels(test[, variable])
-      category   <- isolate(input$cat.sel.prob)
-      paso       <- isolate(input$by.prob)
+      category   <- isolate(input$rlr.sel)
+      paso       <- isolate(input$rlr.by)
       prediccion <- modelos$rlr[[nombre.modelo$x]]$prob 
       Score      <- prediccion$prediction[,category,]
       Clase      <- test[,variable]
@@ -389,7 +389,7 @@ mod_penalized_l_r_server <- function(input, output, session, updateData, modelos
     cod  <- paste0(cod,codigo)
     
     # Se genera el código del posible lambda
-    codigo <- select.landa(updateData$variable.predecir,
+    codigo <- select_landa(updateData$variable.predecir,
                            isolate(input$alpha.rlr),
                            isolate(input$switch.scale.rlr),
                            tipo)

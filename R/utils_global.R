@@ -65,7 +65,7 @@ close.menu <- function(tabname = NA, valor = T) {
 }
 
 # Hace el gráfico de la matriz de confusión
-plot.MC.code <- function(cm,idioma) {
+plot_MC_code <- function(cm, idioma) {
   return(paste0("
 plot.MC <<- function(cm,idioma) {
   par(mar = c(2, 2, 2, 2))

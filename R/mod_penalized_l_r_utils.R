@@ -1,5 +1,5 @@
 
-select.beta <- function(modelo, lambda){
+select_beta <- function(modelo, lambda) {
   menor   <- 0
   mayor   <- 0
   cercano <- 0
@@ -19,12 +19,14 @@ select.beta <- function(modelo, lambda){
   }
   return(which(modelo$lambda == cercano))
 }
-select.landa <- function(variable.pr = NULL, alpha = 0, escalar = TRUE, type = "ridge"){
+
+select_landa <- function(variable.pr = NULL, alpha = 0, escalar = TRUE, type = "ridge"){
   paste0("x <- model.matrix(",variable.pr,"~., datos.aprendizaje)[, -1]\n",
          "y <- datos.aprendizaje[, '",variable.pr,"']\n",
          "cv.glm.",type," <<- glmnet::cv.glmnet(x, y, standardize = ",escalar,", alpha = ",alpha,",family = 'multinomial')\n",
          "e_posib_lambda(cv.glm.",type,")")
 }
+
 coeff.values <- function(data, name ){
   lapply(1:length(data[["x"]]), function(i) c(data[["x"]][[i]], data[[name]][[i]]))
 }

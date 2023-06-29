@@ -163,7 +163,7 @@ mod_xgboosting_server <- function(input, output, session, updateData, modelos, c
   # Update confusion matrix plot
   output$plot_xgb_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$xgb[[nombre.modelo$x]]$mc)
   })
   

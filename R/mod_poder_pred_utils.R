@@ -34,7 +34,7 @@ dist_cat_predecir <- function(data, variable, variable.pr){
 }
 
 #Gráfica el pairs
-pairs.poder  <- function(datos,variable.predecir, col){
+pairs_poder  <- function(datos,variable.predecir, col){
   vars.p <- datos[,variable.predecir]
   tam    <- length(unique(vars.p))
   if(tam == 2){
@@ -138,7 +138,7 @@ code.dist.varpred <- function(var) {
 }
 
 #Gráfica el pairs
-code.pairs.poder <- function(variable.predecir){
+code.pairs_poder <- function(variable.predecir){
   return(paste0("vars.p <- datos[,'",variable.predecir,"']\n",
                 "col <- rainbow((length(unique(vars.p)) + 1)*2)[seq(2,(length(unique(vars.p)) + 1)*2,2)]\n",
                 "col <- col[2:length(col)]\n",

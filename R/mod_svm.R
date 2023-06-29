@@ -170,7 +170,7 @@ mod_svm_server <- function(input, output, session, updateData, modelos, codediom
   # Update confusion matrix plot
   output$plot_svm_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$svm[[nombre.modelo$x]]$mc)
   })
   

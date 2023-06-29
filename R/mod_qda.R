@@ -152,7 +152,7 @@ mod_qda_server <- function(input, output, session, updateData, modelos, codediom
   #Gráfico de la Matríz de Confusión
   output$plot_qda_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$qda[[nombre.modelo$x]]$mc)
   })
   

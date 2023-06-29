@@ -101,33 +101,38 @@ mod_cv_svm_server <- function(input, output, session, updateData, codedioma){
       M$global  <- NULL
       M$categories <- NULL
       tryCatch({
-        kernels   <- isolate(input$sel_kernel_svm)
-        cant.vc   <- isolate(updateData$numValC)
-        MCs.svm   <- vector(mode = "list")
-        datos     <- isolate(updateData$datos)
-        numGrupos <- isolate(updateData$numGrupos)
-        grupos    <- isolate(updateData$grupos)
-        scales    <- isolate(input$scale_cvsvm)
-        variable  <- updateData$variable.predecir
+        kernels   <- isolate(input$sel_kernel_svm) # Algoritmos seleccionados para CV (vector)
+        cant.vc   <- isolate(updateData$numValC)# Obtiene cantidad de validaciones a realizar
+        MCs.svm   <- vector(mode = "list")# Lista de listas que va a guardar todas las MCs
+        datos     <- isolate(updateData$datos)# Obtiene los datos
+        numGrupos <- isolate(updateData$numGrupos)# Obtiene la cantidad de grupos
+        grupos    <- isolate(updateData$grupos)# Obtiene los grupos de cada validación
+        scales    <- isolate(input$scale_cvsvm) # Estandarizar o no 
+        variable  <- updateData$variable.predecir# Variable a predecir
         var_      <- paste0(variable, "~.")
-        category  <- isolate(levels(updateData$datos[,variable]))
-        dim_v     <- isolate(length(category))
-        nombres   <- vector(mode = "character", length = length(kernels))
-        Corte     <- isolate(input$cvsvm_step)
-        cat_sel   <- isolate(input$cvsvm_cat)
+        category  <- isolate(levels(updateData$datos[,variable]))# Categorías de la variable a predecir
+        dim_v     <- isolate(length(category))# Cantidad de categorías (para generar las matrices de confusión)
+        nombres   <- vector(mode = "character", length = length(kernels))# Almacena el nombre de los modelos (vector en caso de varios kernels, uno solo en caso que no aplican los kernels)
+        Corte     <- isolate(input$cvsvm_step)# Obtiene la probabilidad de corte para el modelo
+        cat_sel   <- isolate(input$cvsvm_cat)# Obtiene la categoría de la variable a predecir seleccionada para aplicar probabilidad de corte
         
         if(length(kernels)<1){
           if(M$times != 0)
             showNotification("Debe seleccionar al menos un kernel")
         }
         for (kernel in 1:length(kernels)){
+          # Llena la lista de listas de MCs con los nombres de cada modelo
           MCs.svm[[paste0("MCs.",kernels[kernel])]] <- vector(mode = "list", length = cant.vc)
+          # Guarda los nombres para las matrices individuales
           nombres[kernel] <- paste0("MC.",kernels[kernel])
         }
         
         for (i in 1:cant.vc){
+          # Lista de Matrices, se identifican con el nombre del modelo
           MC.svm <- vector(mode = "list", length = length(kernels))
           names(MC.svm) <- nombres
+          # Crea la matriz que almacena la MC de confusión
+          # Toma en cuenta las dimensiones de la variable a predecir con dim_v
           for (kernel in 1:length(kernels)){
             MC.svm[[kernel]] <- matrix(rep(0, dim_v * dim_v), nrow = dim_v)
           }

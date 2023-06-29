@@ -13,12 +13,7 @@ mod_cross_validation_ui <- function(id){
                                       div(id = ns("row"), shiny::h5(style = "float:left;margin-top: 15px;margin-right: 10px;", labelInput("selectCat"),class = "wrapper-tag"),
                                           tags$div(class="multiple-select-var",
                                                    selectInput(inputId = ns("cv.cat.sel"),label = NULL,
-                                                               choices =  "", width = "100%")))),
-                     conditionalPanel("input['cross_validation_ui_1-BoxCV'] == 'tabcvcvIndices3'",
-                                      div(id = ns("row2"), shiny::h5(style = "float:left;margin-top: 15px;margin-right: 10px;", labelInput("selectCat"),class = "wrapper-tag"),
-                                          tags$div(class="multiple-select-var",
-                                                   selectInput(inputId = ns("cvcv_glo"),label = NULL,
-                                                               choices = "")))))
+                                                               choices =  "", width = "100%")))))
   
   opc_knn <- list(div(col_4(numericInput(ns("kmax.knn"), labelInput("kmax"), min = 1,step = 1, value = 7)),
                       col_4(selectInput(inputId = ns("kernel.knn.pred"), label = labelInput("selkernel"), selected = 1,
@@ -34,8 +29,10 @@ mod_cross_validation_ui <- function(id){
                   div(col_6(numericInput(ns("cvsvml_step"), labelInput("probC"), value = 0.5, width = "100%", min = 0, max = 1, step = 0.1)),
                       col_6(selectInput(ns("cvsvml_cat"),   choices = "", label =  labelInput("selectCat"), width = "100%"))))
   
-  opc_rf  <- list(div(col_6(numericInput(ns("ntree.rf.pred"), labelInput("numTree"), 20, width = "100%", min = 0)),
-                      col_6(numericInput(ns("mtry.rf.pred"),  labelInput("numVars"),1, width = "100%", min = 1))),
+  opc_rf  <- list(div(col_4(numericInput(ns("ntree.rf.pred"), labelInput("numTree"), 20, width = "100%", min = 0)),
+                      col_4(numericInput(ns("mtry.rf.pred"),  labelInput("numVars"),1, width = "100%", min = 1)),
+                      col_4(selectInput(inputId = ns("split.rf.pred"), label = labelInput("splitIndex"),selected = 1,
+                                        choices =  list("gini" = "gini", "Entropia" = "information")))),
                   div(col_6(numericInput(ns("cvrfl_step"), labelInput("probC"), value = 0.5, width = "100%", min = 0, max = 1, step = 0.1)),
                       col_6(selectInput(ns("cvrfl_cat"),   choices = "", label =  labelInput("selectCat"), width = "100%"))))
   
@@ -132,17 +129,13 @@ mod_cross_validation_ui <- function(id){
                    style = "display:block",withLoader(verbatimTextOutput(ns("txt_cv")), 
                                                       type = "html", loader = "loader4")),br(),br()),
       tabPanel(title = p(labelInput("indices"),class = "wrapper-tag"), value = "tabcvcvIndices3",
-               div(col_4(div(id = ns("row"), shiny::h5(style = "float:left;margin-top: 15px;", labelInput("selectCat"),class = "wrapper-tag"),
-                             tags$div(class="multiple-select-var",
-                                      selectInput(inputId = ns("cvcv_glo"),label = NULL,
-                                                  choices =  "", width = "100%")))),
-                   col_4(),
+               div(col_8(),
                    col_4(div(id = ns("row"), shiny::h5(style = "float:left;margin-top: 15px;", labelInput("tipoGrafico"),class = "wrapper-tag"),
                              tags$div(class="multiple-select-var",
                                       selectInput(inputId = ns("plot_type_p"),label = NULL,
                                                   choices =  "", width = "100%"))))),hr(),
-               div(col_6(echarts4rOutput(ns("e_cv_glob"), width = "100%", height = "70vh")),
-                   col_6(echarts4rOutput(ns("e_cv_error"), width = "100%", height = "70vh")))),
+               div(col_6(echarts4rOutput(ns("e_cv_glob"), width = "100%", height = "80vh")),
+                   col_6(echarts4rOutput(ns("e_cv_error"), width = "100%", height = "80vh")))),
       tabPanel(title = p(labelInput("indicesCat"),class = "wrapper-tag"), value = "tabcvcvIndicesCat",
                div(col_4(div(id = ns("row"), shiny::h5(style = "float:left;margin-top: 15px;", labelInput("selectCat"),class = "wrapper-tag"),
                              tags$div(class="multiple-select-var",
@@ -153,10 +146,10 @@ mod_cross_validation_ui <- function(id){
                              tags$div(class="multiple-select-var",
                                       selectInput(inputId = ns("plot_type"),label = NULL,
                                                   choices =  "", width = "100%"))))),hr(),
-               div(col_6(echarts4rOutput(ns("e_cv_category"), width = "100%", height = "70vh")),
-                   col_6(echarts4rOutput(ns("e_cv_category_err"), width = "100%", height = "70vh")))),
+               div(col_6(echarts4rOutput(ns("e_cv_category"), width = "100%", height = "80vh")),
+                   col_6(echarts4rOutput(ns("e_cv_category_err"), width = "100%", height = "80vh")))),
       tabPanel(title = p(labelInput("tablaComp"),class = "wrapper-tag"),
-               withLoader(DT::dataTableOutput(ns("TablaComp"), height="70vh"), 
+               withLoader(DT::dataTableOutput(ns("TablaComp"), height="80vh"), 
                           type = "html", loader = "loader4"))
     )
  
@@ -172,32 +165,37 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
     
     M <- rv(MCs.cv = NULL, grafico = NULL, global = NULL, categories = NULL, times = 0)
     
-    
+    # Cuándo se seleccionan modelos
     observeEvent(input$sel_models, {
       nombres        <- input$sel_models
       names(nombres) <- tr(nombres,codedioma$idioma)
-      updateSelectInput(session, "sel_methods", choices = nombres, selected = nombres[1])
+      updateSelectInput(session, "sel_methods", choices = nombres, selected = nombres[1]) # Actualiza el select para las opciones de cada modelo
     })
     
+    # Cuando cambia el idioma
     observeEvent(codedioma$idioma, {
-      
+      # Actualiza los nombres de los modelos
       nombres <- list("knnl", "dtl", "rfl", "bl", "svml", "Bayes", "xgb" , "rl", "rlr", "lda", "qda")
       names(nombres) <- tr(c("knnl", "dtl", "rfl", "bl", "svml", "Bayes", "xgb" , "rl", "rlr", "lda", "qda"),codedioma$idioma)
+      # Obtiene los modelos seleccionados anteriormente
       modelos   <- input$sel_models
+      # Obtiene eitquetas de los graficos comparativos
       precision <- list(0, 1)
       names(precision) <- tr(c("errG", "precG"),codedioma$idioma)
       nombres_p <- list( "lineas", "barras","error")
       names(nombres_p) <- tr(c("grafLineas", "grafBarras",  "grafError"),codedioma$idioma)
       
+      # Actualiza los valores 
       updateSelectInput(session, "plot_type", choices = nombres_p, selected = "lineas")
       updateSelectInput(session, "plot_type_p", choices = nombres_p, selected = "lineas")
-      updateSelectInput(session, "cvcv_glo", choices = precision, selected = 1)
       updateCheckboxGroupInput(session, "sel_models", choices = nombres, selected = modelos)
     })
-
+    
+    # Cuándo cambian los datos y variable a predecir
     observeEvent(c(updateData$datos, updateData$variable.predecir), {
       datos    <- updateData$datos
       variable <- updateData$variable.predecir
+      # Reiniciamos valores por defecto
       M$MCs.cv  <- NULL
       M$grafico <- NULL
       M$global  <- NULL
@@ -205,36 +203,35 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
       M$times      <- 0
       defaul_param_values()
       if(!is.null(datos)){
-        choices      <- as.character(unique(datos[, variable]))
-        updateTextInput(session, "txt_cv", value = ' ' )
+        choices      <- as.character(unique(datos[, variable])) # Actualiza categorías de la variable a predecir
+        updateTextInput(session, "txt_cv", value = ' ' ) # Actualiza txt de CV
         updateSelectInput(session, "cv.cat.sel", choices = choices, selected = choices[1]) # Actualiza categoría para los gráficos
-        updateSelectInput(session, "predic_var", choices = rev(colnames.empty(var.categoricas(updateData$datos)))) # Variables categóricas 
+        updateSelectInput(session, "predic_var", choices = rev(colnames.empty(var.categoricas(updateData$datos)))) # Variables categóricas para seleccionar variable a predecir
         actualizar.prob.corte(choices)
       }
       
       output$txt_cv <- renderPrint({
         return(invisible(''))
-        
-        
       })
     })
     
+    # Cuándo ejecuta el botón de CV
     observeEvent(input$btn_cv, {
       output$txt_cv <- renderPrint({
         tryCatch({
-          cant.vc   <- isolate(updateData$numValC)
-          datos     <- isolate(updateData$datos)
-          numGrupos <- isolate(updateData$numGrupos)
-          grupos    <- isolate(updateData$grupos)
-          variable  <- isolate(updateData$variable.predecir)
+          cant.vc   <- isolate(updateData$numValC) # Obtiene cantidad de validaciones a realizar
+          datos     <- isolate(updateData$datos) # Obtiene los datos
+          numGrupos <- isolate(updateData$numGrupos) # Obtiene la cantidad de grupos
+          grupos    <- isolate(updateData$grupos) # Obtiene los grupos de cada validación
+          variable  <- isolate(updateData$variable.predecir) # Variable a predecir
           var_      <- as.formula(paste0(variable, "~."))
-          category  <- isolate(levels(updateData$datos[,variable]))
-          dim_v     <- isolate(length(category))
-          params    <- listar_parametros()
-          models    <- isolate(input$sel_models)
-          nombres   <- vector(mode = "character", length = length(models))
-          MCs.cv    <- vector(mode = "list")
-          if(length(category) == 2)
+          category  <- isolate(levels(updateData$datos[,variable])) # Categorías de la variable a predecir
+          dim_v     <- isolate(length(category)) # Cantidad de categorías (para generar las matrices de confusión)
+          params    <- listar_parametros() # Obtiene los parámetros seleccionados para cada modelo
+          models    <- isolate(input$sel_models) # Modelos seleccionados para validación cruzada
+          nombres   <- vector(mode = "character", length = length(models)) # Inicializa vector para almacenar nombres de los modelos
+          MCs.cv    <- vector(mode = "list") # Lista de listas que va a guardar todas las MCs
+          if(length(category) == 2)# Si aplica obtiene la probabilidad de corte seleccionada para cada modelo
             cortes <- parametros.prob.c()
             
           if(length(models)<1){
@@ -243,23 +240,32 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
           }
 
           for (model in 1:length(models)){
+            # Llena la lista de listas de MCs con los nombres de cada modelo
             MCs.cv[[paste0("MCs.",models[model])]] <- vector(mode = "list", length = cant.vc)
+            # Guarda los nombres para las matrices individuales
             nombres[model] <- paste0("MC.",models[model])
           }
           
+          # Ejecuta Validación Cruzada
           for (i in 1:cant.vc){
+            # Lista de Matrices, se identifican con el nombre del modelo
             MC.cv <- vector(mode = "list", length = length(models))
             names(MC.cv) <- nombres
+            # Crea la matriz que almacena la MC de confusión
+            # Toma en cuenta las dimensiones de la variable a predecir con dim_v
             for (model in 1:length(models)){
               MC.cv[[model]] <- matrix(rep(0, dim_v * dim_v), nrow = dim_v)
             }
             
             for (k in 1:numGrupos){
+              # Obtiene los grupos de cada validación
               muestra   <- grupos[[i]][[k]]
               ttraining <- datos[-muestra, ]
               ttesting  <- datos[muestra, ]
               
+              # Recorre los modelos seleccionados
               for (j in 1:length(models)){
+                # Valida el modelo seleccionado y lo genera
                 modelo      <- switch (models[j],
                                        "knnl"  = {
                                                  train.knn(var_, 
@@ -290,7 +296,8 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
                                                                     data  = ttraining, 
                                                                     mtry  = params$mtry, 
                                                                     ntree = params$ntree, 
-                                                                    importance = TRUE)},
+                                                                    importance = TRUE,
+                                                                    parms   = list(split = params$tipo_rf))},
                                        "bl"    = {
                                                  train.adabag(var_, 
                                                               data      = ttraining, 
@@ -318,7 +325,8 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
                                                            data = ttraining)}
                 )
                 if(length(category) == 2){
-
+                  
+                  # Obtiene la probabilidad de corte para el modelo
                   Corte     <- switch(models[j],
                                       "knnl"  = cortes$cvknnl_step, 
                                       "svml"  = cortes$cvsvml_step, 
@@ -331,6 +339,7 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
                                       "rlr"   = cortes$cvrlr_step, 
                                       "lda"   = cortes$cvlda_step, 
                                       "qda"   = cortes$cvqda_step)
+                  # Obtiene la categoría de la variable a predecir seleccionada para aplicar probabilidad de corte
                   cat_sel   <- switch(models[j],
                                       "knnl"  = cortes$cvknnl_cat, 
                                       "svml"  = cortes$cvsvml_cat, 
@@ -344,20 +353,31 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
                                       "lda"   = cortes$cvlda_cat, 
                                       "qda"   = cortes$cvqda_cat)
                   
-                  
+                  # Se define la categoría positiva y negativa
+                  # Categoría positiva se asume es la seleccionada 
                   positive    <- category[which(category == cat_sel)]
                   negative    <- category[which(category != cat_sel)]
+                  
+                  # Genera las probabilidades de predicción
                   prediccion  <- predict(modelo, ttesting, type = "prob")
+                  # Guarda la clase verdadera
                   Clase       <- ttesting[,variable]
+                  
+                  # Obtiene las probabilidades para la categoría seleccionada
                   if(models[j] == "rlr")
                     Score       <- prediccion$prediction[,positive,]
                   else
                     Score       <- prediccion$prediction[,positive]
                   
+                  # Genera la predicción con el corte y categoría seleccionada
                   Prediccion  <- ifelse(Score  > Corte, positive, negative)
+                  # Crea la MC
                   MC          <- table(Clase , Pred = factor(Prediccion, levels = category))
+                  # Suma la MC
                   MC.cv[[j]]  <- MC.cv[[j]] + MC
                 }else{
+                  # Para el caso de 3 o más categorías
+                  # Predicción, MC 
                   prediccion  <- predict(modelo, ttesting)
                   MC          <- confusion.matrix(ttesting, prediccion)
                   MC.cv[[j]]  <- MC.cv[[j]] + MC
@@ -366,12 +386,15 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
               }
             } 
             
+            # Guarda las matrices en la lista de matrices
             for (l in 1:length(MCs.cv)){
               MCs.cv[[l]][[i]] <- MC.cv[[l]]
             }
           }
           
+          # Asigna los valores a las variables reactivas
           M$MCs.cv   <- MCs.cv
+          # Se calculan los indices para realizar los gráficos
           resultados <- indices.cv(category, cant.vc, models, MCs.cv)
           M$grafico  <- resultados$grafico
           M$global   <- resultados$global
@@ -380,8 +403,6 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
           isolate(codedioma$code <- append(codedioma$code, cv_cv_code(variable, dim_v, cant.vc, numGrupos)))
           
           print(MCs.cv)
-          
-          
           
         },error = function(e){
           return(e)
@@ -392,15 +413,16 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
     })
     
     
+    # Gráfico de la precisión Global
     output$e_cv_glob  <-  renderEcharts4r({
-      type    <- input$plot_type_p
-      grafico <- M$grafico
+      type    <- input$plot_type_p # Tipo de gráfico seleccionado
+      grafico <- M$grafico # Datos del gráfico
       if(!is.null(grafico)){
         idioma    <- codedioma$idioma
         grafico$name <-  tr(grafico$name,idioma)
         
         switch (type,
-                "barras" = return( resumen.barras(grafico, labels = c(tr("precG",idioma), tr("modelo", idioma) ))), 
+                "barras" = return( resumen.barras(grafico, labels = c(tr("precG",idioma), "" ), rotacion = TRUE)), 
                 "error"  = return( resumen.error(grafico,  labels = c(tr("precG",idioma), tr("modelo", idioma), tr("maximo", idioma),tr("minimo", idioma)))), 
                 "lineas" = return( resumen.lineas(grafico, labels = c(tr("precG",idioma),tr("crossval",idioma) )))
         )
@@ -409,16 +431,17 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
         return(NULL)
     })    
     
+    # Gráfico del error Global
     output$e_cv_error  <-  renderEcharts4r({
       idioma    <- codedioma$idioma
-      type      <- input$plot_type_p
+      type      <- input$plot_type_p # Tipo de gráfico seleccionado
       
       if(!is.null(M$grafico)){
-        err  <- M$grafico
+        err  <- M$grafico # Datos del gráfico
         err$value <- 1 - M$global
         err$name <-  tr(err$name,idioma)
         switch (type,
-                "barras" = return( resumen.barras(err, labels = c(tr("errG",idioma), tr("modelo", idioma) ))), 
+                "barras" = return( resumen.barras(err, labels = c(tr("errG",idioma), "" ), rotacion = TRUE)), 
                 "error"  = return( resumen.error(err,  labels = c(tr("errG",idioma), tr("modelo", idioma), tr("maximo", idioma),tr("minimo", idioma)))), 
                 "lineas" = return( resumen.lineas(err, labels = c(tr("errG",idioma), tr("crossval",idioma) )))
         )
@@ -428,17 +451,18 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
     })
     
     
+    # Gráfico de precisión por categoría
     output$e_cv_category  <-  renderEcharts4r({
       idioma <- codedioma$idioma
       tryCatch({
-        cat    <- input$cv.cat.sel
-        type   <- input$plot_type
+        cat    <- input$cv.cat.sel # Categoría seleccionada
+        type   <- input$plot_type # Tipo de gráfico seleccionado
         if(!is.null(M$grafico)){
           graf  <- M$grafico
           graf$name <-  tr(graf$name,codedioma$idioma)
           graf$value <- M$categories[[cat]]
           switch (type,
-                  "barras" = return( resumen.barras(graf, labels = c(paste0(tr("prec",idioma), " ",cat ), tr("modelo", idioma)))), 
+                  "barras" = return( resumen.barras(graf, labels = c(paste0(tr("prec",idioma), " ",cat ), ""), rotacion = TRUE)), 
                   "error" = return( resumen.error(graf,   labels = c(paste0(tr("prec",idioma), " ",cat ), tr("modelo", idioma), tr("maximo", idioma),tr("minimo", idioma)))), 
                   "lineas" = return( resumen.lineas(graf, labels = c(paste0(tr("prec",idioma), " ",cat ), tr("crossval",idioma) )))
           )
@@ -450,17 +474,18 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
       })
     })
     
+    # Gráfico de error por categoría
     output$e_cv_category_err  <-  renderEcharts4r({
       idioma <- codedioma$idioma
       tryCatch({
-        cat    <- input$cv.cat.sel
-        type   <- input$plot_type
+        cat    <- input$cv.cat.sel # Categoría seleccionada
+        type   <- input$plot_type # Tipo de gráfico seleccionado
         if(!is.null(M$grafico)){
           graf  <- M$grafico
           graf$name <-  tr(graf$name,codedioma$idioma)
           graf$value <- 1 - M$categories[[cat]]
           switch (type,
-                  "barras" = return( resumen.barras(graf, labels = c(paste0("Error ",cat ), tr("modelo", idioma)))), 
+                  "barras" = return( resumen.barras(graf, labels = c(paste0("Error ",cat )), rotacion = TRUE)), 
                   "error" = return( resumen.error(graf,   labels = c(paste0("Error ",cat ), tr("modelo", idioma), tr("maximo", idioma),tr("minimo", idioma)))), 
                   "lineas" = return( resumen.lineas(graf, labels = c(paste0("Error ",cat ), tr("crossval",idioma) )))
           )
@@ -528,6 +553,7 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
       }
     })
     
+    # Obtiene los parámetros seleccionados para cada modelo
     listar_parametros <- function(){
       isolate({
         k_kn         <-  input$kmax.knn 
@@ -537,6 +563,7 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
         minsplit_dt  <-  input$minsplit.dt.pred 
         maxdepth_dt  <-  input$maxdepth.dt.pred 
         mtry         <-  input$mtry.rf.pred 
+        tipo_rf      <-  input$split.rf.pred 
         ntree        <-  input$ntree.rf.pred 
         scal_svm     <-  input$switch.scale.svm.pred 
         kernel_svm   <-  input$kernel.svm.pred 
@@ -559,16 +586,17 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
         minsplit_b   <-  input$minsplit.boosting.pred
         coeflearn_b  <- input$coeflearn
       })
-      return(list(k_kn        = k_kn,       scal_kn     = scal_kn,     kernel_kn    = kernel_kn, 
-                  tipo_dt     = tipo_dt,    minsplit_dt = minsplit_dt, maxdepth_dt  = maxdepth_dt, 
-                  mtry        = mtry,       ntree       = ntree,       scal_svm     = scal_svm, 
-                  kernel_svm  = kernel_svm, tipo_xgb    = tipo_xgb,    maxdepth_xgb = maxdepth_xgb,  
-                  n.rounds    = n.rounds,   threshold   = threshold,   stepmax      = stepmax, 
-                  capas.np    = capas.np,   scal_rlr    = scal_rlr,    alpha        = alpha, 
-                  iter        = iter,       maxdepth_b  = maxdepth_b,  minsplit_b   = minsplit_b, 
-                  coeflearn_b = coeflearn_b))
+      return(list(k_kn        = k_kn,        scal_kn     = scal_kn,     kernel_kn    = kernel_kn, 
+                  tipo_dt     = tipo_dt,     minsplit_dt = minsplit_dt, maxdepth_dt  = maxdepth_dt, 
+                  mtry        = mtry,        ntree       = ntree,       scal_svm     = scal_svm, 
+                  kernel_svm  = kernel_svm,  tipo_xgb    = tipo_xgb,    maxdepth_xgb = maxdepth_xgb,  
+                  n.rounds    = n.rounds,    threshold   = threshold,   stepmax      = stepmax, 
+                  capas.np    = capas.np,    scal_rlr    = scal_rlr,    alpha        = alpha, 
+                  iter        = iter,        maxdepth_b  = maxdepth_b,  minsplit_b   = minsplit_b, 
+                  coeflearn_b = coeflearn_b, tipo_rf = tipo_rf))
     }
     
+    # Obtiene las probabilidades de corte y categoría seleccionada para cada modelo
     parametros.prob.c <- function(){
       isolate({
         cvknnl_cat    <-  input$cvknnl_cat 
@@ -602,6 +630,7 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
                   cvqda_cat  = cvqda_cat,  cvqda_step   = cvqda_step))
     }
     
+    # Valores por defecto
     defaul_param_values <- function(){
       updateSliderInput(session, "cant.capas.nn.pred", value = 3)
     }

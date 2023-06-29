@@ -99,7 +99,7 @@ mod_varerr_server <- function(input, output, session, updateData, modelos, coded
         indices <- indices.comp(category, mdl$mcs,mdl$n )
         graf    <- indices$grafico
         graf$value <- 1 - graf$value
-        comp.lineas(graf, labels = c(tr("errG",idioma), tr("rep",idioma) ), error = TRUE)
+        comp.lineas(graf, labels = c(tr("errG",idioma), tr("rep",idioma) ))
       }, error = function(e) {
         showNotification(e, duration = 15, type = "error")
         return(NULL)

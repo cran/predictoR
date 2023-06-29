@@ -1,4 +1,4 @@
-#Código del grafico de evolucion del error
+#Gráfico de evolucion del error
 e_evol_error <- function(x, label = "Iterations") {
   if (!((class(x) %in% c("errorevol")))) 
     stop("x class should be errorevol")

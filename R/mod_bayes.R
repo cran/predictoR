@@ -15,7 +15,7 @@ mod_bayes_ui <- function(id){
       conditionalPanel(
         "input['bayes_ui_1-BoxBayes'] == 'tabBayesModelo' || input['bayes_ui_1-BoxBayes'] == 'tabBayesProb' || input['bayes_ui_1-BoxBayes'] == 'tabBayesProbInd'",
         tabsOptions(heights = c(70), tabs.content = list(
-          list(conditionalPanel("input['bayes_ui_1-BoxBayes']   == 'tabKknModelo'",
+          list(conditionalPanel("input['bayes_ui_1-BoxBayes']   == 'tabBayesModelo'",
             options.run(ns("runBayes")), tags$hr(style = "margin-top: 0px;")),
             conditionalPanel(
               "input['bayes_ui_1-BoxBayes'] == 'tabBayesProb'",
@@ -77,14 +77,15 @@ mod_bayes_server <- function(input, output, session, updateData, modelos, codedi
   observeEvent(updateData$datos, {
     modelos2$bayes = list(n = 0, mcs = vector(mode = "list", length = 10))
   })
+  
   #Cuando se generan los datos de prueba y aprendizaje
   observeEvent(c(updateData$datos.aprendizaje,updateData$datos.prueba), {
     variable <- updateData$variable.predecir
     datos    <- updateData$datos
     choices  <- as.character(unique(datos[, variable]))
-    if(length(choices) == 2){
-      updateSelectInput(session, "cat_probC", choices = choices, selected = choices[1])
-      updateSelectInput(session, "cat.sel.prob", choices = choices, selected = choices[1])
+    if(length(choices) == 2){ # Verifica que la variable a predecir tenga solo 2 categorías
+      updateSelectInput(session, "cat_probC", choices = choices, selected = choices[1]) # Actualiza las categorías para probabilidad de corte Individual
+      updateSelectInput(session, "cat.sel.prob", choices = choices, selected = choices[1])# Actualiza las categorías para probabilidad de corte múltiple
     }else{
       updateSelectInput(session, "cat.sel.prob", choices = "")
       updateSelectInput(session, "cat_probC", choices = "")
@@ -108,14 +109,16 @@ mod_bayes_server <- function(input, output, session, updateData, modelos, codedi
     choices    <- levels(test[, variable])
     
     if(length(choices) == 2){
-      category   <- isolate(input$cat_probC)
-      corte      <- isolate(input$val_probC)
-      Score      <- prob$prediction[,category]
-      Clase      <- test[,variable]
-      results    <- prob.values.ind(Score, Clase, choices, category, corte, print = FALSE)
+      # Para variable a predecir con 2 categorías
+      category   <- isolate(input$cat_probC) # Obtiene la categoría seleccionada
+      corte      <- isolate(input$val_probC) # Obtiene la probabilidad de corte seleccionada
+      Score      <- prob$prediction[,category] # Guarda Scores
+      Clase      <- test[,variable] # Guarda clases de la variable a predecir
+      results    <- prob.values.ind(Score, Clase, choices, category, corte, print = FALSE) # Calcula las predicciones y MC
       mc     <- results$MC
       pred   <- results$Prediccion
     }else{
+      # Para variable a predecir con más de 2 categorías
       pred   <- predict(modelo , test, type = 'class')
       mc     <- confusion.matrix(test, pred)
       pred   <- pred$prediction
@@ -123,10 +126,11 @@ mod_bayes_server <- function(input, output, session, updateData, modelos, codedi
     
     isolate({
       modelos$bayes[[nombre]] <- list(nombre = nombre, modelo = modelo, pred = pred, prob = prob, mc = mc)
-      modelos2$bayes$n <- modelos2$bayes$n + 1
-      modelos2$bayes$mcs[modelos2$bayes$n] <- general.indexes(mc = mc)
-      if(modelos2$bayes$n > 9)
-        modelos2$bayes$n <- 0
+      
+      modelos2$bayes$n <- modelos2$bayes$n + 1 # Aumenta contador de modelos generados
+      modelos2$bayes$mcs[modelos2$bayes$n] <- general.indexes(mc = mc) # Guarda MC 
+      if(modelos2$bayes$n > 9) # Verifica que no hayan mas de 10 modelos en "cola"
+        modelos2$bayes$n <- 0 # Reinicia el contador de modelos
       })
     nombre.modelo$x <- nombre
     print(modelo)    
@@ -151,7 +155,7 @@ mod_bayes_server <- function(input, output, session, updateData, modelos, codedi
   #Gráfico de la Matríz de Confusión
   output$plot_bayes_mc <- renderPlot({
     idioma <- codedioma$idioma
-    exe(plot.MC.code(idioma = idioma))
+    exe(plot_MC_code(idioma = idioma))
     plot.MC(modelos$bayes[[nombre.modelo$x]]$mc)
   })
   
@@ -176,19 +180,19 @@ mod_bayes_server <- function(input, output, session, updateData, modelos, codedi
     
   }, spacing = "xs",bordered = T, width = "100%", align = "c", digits = 2)
   
-  # Genera la probabilidad de corte
+  # Genera la probabilidad de corte múltiple
   output$txtbayesprob <- renderPrint({
     input$runProb
     tryCatch({
-      test       <- updateData$datos.prueba
+      test       <- updateData$datos.prueba 
       variable   <- updateData$variable.predecir
       choices    <- levels(test[, variable])
-      category   <- isolate(input$cat.sel.prob)
-      paso       <- isolate(input$by.prob)
-      prediccion <- modelos$bayes[[nombre.modelo$x]]$prob 
-      Score      <- prediccion$prediction[,category]
-      Clase      <- test[,variable]
-      prob.values(Score, Clase, choices, category, paso)  
+      category   <- isolate(input$cat.sel.prob) # Categoría seleccionada
+      paso       <- isolate(input$by.prob) # Paso seleccionado para ir calculando la prob de corte
+      prediccion <- modelos$bayes[[nombre.modelo$x]]$prob  # Probabilidades del modelo
+      Score      <- prediccion$prediction[,category] # Probabilidades del modelo en la categoría seleccionada
+      Clase      <- test[,variable] # Valor real
+      prob.values(Score, Clase, choices, category, paso)  # Se calculan las MC para la categoría y paso seleccionado
     },error = function(e){
       if(length(choices) != 2){
         showNotification(paste0("ERROR Probabilidad de Corte: ", tr("errorprobC", codedioma$idioma)), type = "error")
@@ -200,20 +204,20 @@ mod_bayes_server <- function(input, output, session, updateData, modelos, codedi
     })
   })
   
-  # Genera la probabilidad de corte
+  # Genera la probabilidad de corte Individual
   output$txtbayesprobInd <- renderPrint({
     input$runProbInd
     tryCatch({
       test       <- updateData$datos.prueba
       variable   <- updateData$variable.predecir
-      choices    <- levels(test[, variable])
-      category   <- isolate(input$cat_probC)
-      corte      <- isolate(input$val_probC)
-      prediccion <- modelos$bayes[[nombre.modelo$x]]$prob 
-      Score      <- prediccion$prediction[,category]
+      choices    <- levels(test[, variable]) # Niveles de la variable a predecir
+      category   <- isolate(input$cat_probC) # Categoría seleccionada
+      corte      <- isolate(input$val_probC) # Probabilidad de corte seleccionado, por defecto 0.5
+      prediccion <- modelos$bayes[[nombre.modelo$x]]$prob # Predicción con probabilidades 
+      Score      <- prediccion$prediction[,category] # Probabilidades de la categoría seleccionada
       Clase      <- test[,variable]
       if(!is.null(Score) & length(choices) == 2){
-        results <- prob.values.ind(Score, Clase, choices, category, corte)
+        results <- prob.values.ind(Score, Clase, choices, category, corte) # Calcula predicción y MC
         modelos$bayes[[nombre.modelo$x]]$mc   <- results$MC
         modelos$bayes[[nombre.modelo$x]]$pred <- results$Prediccion
       }

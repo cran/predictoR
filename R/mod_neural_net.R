@@ -193,7 +193,7 @@ mod_neural_net_server <- function(input, output, session, updateData, modelos, c
   output$plot_nn_mc <- renderPlot({
     idioma <- codedioma$idioma
     tryCatch({  
-      exe(plot.MC.code(idioma = idioma))
+      exe(plot_MC_code(idioma = idioma))
       plot.MC(modelos$nn[[nombre.modelo$x]]$mc)
     },
     error = function(e) { 

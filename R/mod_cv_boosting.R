@@ -99,65 +99,83 @@ mod_cv_boost_server <- function(input, output, session, updateData, codedioma){
     
     output$txtcvboost <- renderPrint({
       input$btn_cv_boost
-      M$MCs.boost <- NULL
-      M$grafico <- NULL
-      M$global  <- NULL
+      M$MCs.boost  <- NULL
+      M$grafico.   <- NULL
+      M$global     <- NULL
       M$categories <- NULL
       tryCatch({
-        kernels   <- isolate(input$sel_kernel)
-        cant.vc   <- isolate(updateData$numValC)
-        MCs.boost <- vector(mode = "list")
-        datos     <- isolate(updateData$datos)
-        numGrupos <- isolate(updateData$numGrupos)
-        grupos    <- isolate(updateData$grupos)
-        mfinal    <- isolate(input$mfinal)
-        maxdepth  <-isolate(input$maxdepth)
+        kernels   <- isolate(input$sel_kernel) # Algoritmos a utilizar (vector)
+        cant.vc   <- isolate(updateData$numValC)# Obtiene cantidad de validaciones a realizar
+        MCs.boost <- vector(mode = "list")# Lista de listas que va a guardar todas las MCs
+        datos     <- isolate(updateData$datos)# Obtiene los datos
+        numGrupos <- isolate(updateData$numGrupos)# Obtiene la cantidad de grupos
+        grupos    <- isolate(updateData$grupos)# Obtiene los grupos de cada validación
+        mfinal    <- isolate(input$mfinal) # Numéro de Árboles
+        maxdepth  <-isolate(input$maxdepth) # Profundidad máxima
         #minsplit  <-isolate(input$minsplit)
-        variable  <- updateData$variable.predecir
+        variable  <- updateData$variable.predecir# Variable a predecir
         var_      <- paste0(variable, "~.")
-        category  <- isolate(levels(updateData$datos[,variable]))
-        dim_v     <- isolate(length(category))
-        nombres   <- vector(mode = "character", length = length(kernels))
-        Corte     <- isolate(input$cvboost_step)
-        cat_sel   <- isolate(input$cvboost_cat)
+        category  <- isolate(levels(updateData$datos[,variable]))# Categorías de la variable a predecir
+        dim_v     <- isolate(length(category))# Cantidad de categorías (para generar las matrices de confusión)
+        nombres   <- vector(mode = "character", length = length(kernels))# Almacena el nombre de los modelos (vector en caso de varios kernels, uno solo en caso que no aplican los kernels)
+        Corte     <- isolate(input$cvboost_step)# Obtiene la probabilidad de corte para el modelo
+        cat_sel   <- isolate(input$cvboost_cat)# Obtiene la categoría de la variable a predecir seleccionada para aplicar probabilidad de corte
         
         if(length(kernels)<1){
           if(M$times != 0)
             showNotification("Debe seleccionar al menos un kernel")
         }
         for (kernel in 1:length(kernels)){
+          # Llena la lista de listas de MCs con los nombres de cada modelo
           MCs.boost[[paste0("MCs.",kernels[kernel])]] <- vector(mode = "list", length = cant.vc)
+          # Guarda los nombres para las matrices individuales
           nombres[kernel] <- paste0("MC.",kernels[kernel])
         }
         
         for (i in 1:cant.vc){
+          # Lista de Matrices, se identifican con el nombre del modelo
           MC.boost <- vector(mode = "list", length = length(kernels))
           names(MC.boost) <- nombres
+          # Crea la matriz que almacena la MC de confusión
+          # Toma en cuenta las dimensiones de la variable a predecir con dim_v
           for (kernel in 1:length(kernels)){
             MC.boost[[kernel]] <- matrix(rep(0, dim_v * dim_v), nrow = dim_v)
           }
           
           for (k in 1:numGrupos){
+            # Obtiene los grupos de cada validación
             muestra   <- grupos[[i]][[k]]
             ttraining <- datos[-muestra, ]
             ttesting  <- datos[muestra, ]
             
+            # Recorre los Algoritmos seleccionados
             for (j in 1:length(kernels)){
+              # Genera el modelo
               modelo      <- train.adabag(as.formula(var_), 
                                           data      = ttraining, 
                                           coeflearn = kernels[j], 
                                           mfinal    = mfinal,
                                           control = rpart.control(maxdepth = maxdepth))
               if(length(category) == 2){
+                # Se define la categoría positiva y negativa
+                # Categoría positiva se asume es la seleccionada 
                 positive    <- category[which(category == cat_sel)]
                 negative    <- category[which(category != cat_sel)]
+                # Genera las probabilidades de predicción
                 prediccion  <- predict(modelo, ttesting, type = "prob")
+                # Guarda la clase verdadera
                 Clase       <- ttesting[,variable]
+                # Obtiene las probabilidades para la categoría seleccionada
                 Score       <- prediccion$prediction[,positive]
+                # Genera la predicción con el corte y categoría seleccionada
                 Prediccion  <- ifelse(Score  > Corte, positive, negative)
+                # Crea la MC
                 MC          <- table(Clase , Pred = factor(Prediccion, levels = category))
+                # Suma la MC
                 MC.boost[[j]] <- MC.boost[[j]] + MC
               }else{
+                # Para el caso de 3 o más categorías
+                # Predicción, MC 
                 prediccion  <- predict(modelo, ttesting)
                 MC          <- confusion.matrix(ttesting, prediccion)
                 MC.boost[[j]] <- MC.boost[[j]] + MC
@@ -165,12 +183,15 @@ mod_cv_boost_server <- function(input, output, session, updateData, codedioma){
             }
           }
           
+          # Guarda las matrices en la lista de matrices
           for (l in 1:length(MCs.boost)){
             MCs.boost[[l]][[i]] <- MC.boost[[l]]
           }
         }
         
+        # Asigna los valores a las variables reactivas
         M$MCs.boost  <- MCs.boost
+        # Se calculan los indices para realizar los gráficos
         resultados <- indices.cv(category, cant.vc, kernels, MCs.boost)
         M$grafico  <- resultados$grafico
         M$global   <- resultados$global
@@ -192,6 +213,7 @@ mod_cv_boost_server <- function(input, output, session, updateData, codedioma){
     
     
     
+    # Gráfico de la precisión Global
     output$e_boost_glob  <-  renderEcharts4r({
       input$btn_cv_boost
       type    <- input$plot_type_p
@@ -209,6 +231,7 @@ mod_cv_boost_server <- function(input, output, session, updateData, codedioma){
         return(NULL)
     })    
     
+    # Gráfico del error Global
     output$e_boost_error  <-  renderEcharts4r({
       idioma    <- codedioma$idioma
       type      <- input$plot_type_p
@@ -227,10 +250,11 @@ mod_cv_boost_server <- function(input, output, session, updateData, codedioma){
     })
     
     
+    # Gráfico de precisión por categoría
     output$e_boost_category  <-  renderEcharts4r({
       idioma <- codedioma$idioma
-      cat    <- input$cv.cat.sel
-      type   <- input$plot_type
+      cat    <- input$cv.cat.sel# Categoría seleccionada
+      type   <- input$plot_type# Tipo de gráfico seleccionado
       if(!is.null(M$grafico)){
         graf  <- M$grafico
         graf$value <- M$categories[[cat]]
@@ -244,10 +268,11 @@ mod_cv_boost_server <- function(input, output, session, updateData, codedioma){
         return(NULL)
     })
     
+    # Gráfico de error por categoría
     output$e_boost_category_err  <-  renderEcharts4r({
       idioma <- codedioma$idioma
-      cat    <- input$cv.cat.sel
-      type   <- input$plot_type
+      cat    <- input$cv.cat.sel# Categoría seleccionada
+      type   <- input$plot_type# Tipo de gráfico seleccionado
       if(!is.null(M$grafico)){
         graf  <- M$grafico
         graf$value <- 1- M$categories[[cat]]
