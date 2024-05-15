@@ -87,9 +87,9 @@ mod_comparacion_server <- function(input, output, session, updateData, modelos, 
     }
     
     res[]                      <- lapply(res, as.numeric)
-    res                        <- round(res, 5)*100
+    res                        <- round(res * 100, 5)
     DT::datatable(res, selection = "none", editable = FALSE,
-                                   options = list(dom = "frtip", pageLength = 10, buttons = NULL))
+                  options = list(dom = "frtip", pageLength = 10, buttons = NULL))
     }, error = function(e) {
       DT::datatable(data.frame(), selection = "none", editable = FALSE,
                     options = list(dom = "frtip", pageLength = 10, buttons = NULL))

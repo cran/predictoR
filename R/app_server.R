@@ -4,7 +4,9 @@
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @keywords internal
-app_server <- function( input, output, session ) {
+#' @noRd
+
+app_server <- function(input, output, session) {
   
   ##################################  Options  ################################
   options(shiny.maxRequestSize = 200*1024^2)

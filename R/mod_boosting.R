@@ -316,7 +316,8 @@ mod_boosting_server <- function(input, output, session, updateData, modelos, cod
     codigo <- boosting.modelo(variable.pr = updateData$variable.predecir,
                               iter        = isolate(input$iter.boosting),
                               maxdepth    = isolate(input$maxdepth.boosting),
-                              minsplit    = isolate(input$minsplit.boosting))
+                              minsplit    = isolate(input$minsplit.boosting),
+                              coeflearn   = isolate(input$coeff.boosting))
     
     cod  <- paste0("### docpot\n",codigo)
     

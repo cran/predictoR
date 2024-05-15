@@ -459,7 +459,7 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
         type   <- input$plot_type # Tipo de gráfico seleccionado
         if(!is.null(M$grafico)){
           graf  <- M$grafico
-          graf$name <-  tr(graf$name,codedioma$idioma)
+          graf$name <- tr(names(M$categories[[cat]]), codedioma$idioma)
           graf$value <- M$categories[[cat]]
           switch (type,
                   "barras" = return( resumen.barras(graf, labels = c(paste0(tr("prec",idioma), " ",cat ), ""), rotacion = TRUE)), 
@@ -482,7 +482,7 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
         type   <- input$plot_type # Tipo de gráfico seleccionado
         if(!is.null(M$grafico)){
           graf  <- M$grafico
-          graf$name <-  tr(graf$name,codedioma$idioma)
+          graf$name <-  tr(names(M$categories[[cat]]), codedioma$idioma)
           graf$value <- 1 - M$categories[[cat]]
           switch (type,
                   "barras" = return( resumen.barras(graf, labels = c(paste0("Error ",cat )), rotacion = TRUE)), 
@@ -499,29 +499,27 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
     
     # Update Comparison Table
     output$TablaComp <- DT::renderDataTable({
-      res      <- data.frame()
-      idioma   <- codedioma$idioma
-      global   <- M$grafico
+      res        <- data.frame()
+      idioma     <- codedioma$idioma
+      global     <- M$grafico
       categorias <- M$categories
       tryCatch({
-        global$name <-  tr(global$name,codedioma$idioma)
-        
         global <- global |> 
-                    dplyr::group_by(name) |> 
-                      dplyr::summarise(value = mean(value))
+          dplyr::group_by(name) |> 
+          dplyr::summarise(value = mean(value))
         
-        for (i in 1:nrow(global)) {
+        for (x in global$name) {
           new <- data.frame(
-            OAccuracy = global[i,"value"],
-            EAccuracy = 1- global[i,"value"]
+            OAccuracy = global[global$name == x, "value"],
+            EAccuracy = 1- global[global$name == x, "value"]
           )
           for (cat in names(categorias)) {
-            new[[paste0(tr("prec",idioma), " ",cat)]] <- categorias[[cat]][i]
+            i <- which(names(categorias[[cat]]) == x)
+            new[[paste0(tr("prec",idioma), " ",cat)]] <- mean(categorias[[cat]][i])
           }
           
-          row.names(new) <- global[i,"name"]
+          row.names(new) <- x
           res            <- rbind(res, new)
-          
         }
         
         colnames(res)[1]           <- tr('precG', idioma)
@@ -529,7 +527,8 @@ mod_cross_validation_server <- function(input, output, session, updateData, code
         
         
         res[]                      <- lapply(res, as.numeric)
-        res                        <- round(res, 5)*100
+        res                        <- round(res * 100, 5)
+        row.names(res) <- tr(row.names(res), codedioma$idioma)
         DT::datatable(res, selection = "none", editable = FALSE,
                       options = list(dom = "frtip", pageLength = 10, buttons = NULL))
       }, error = function(e) {

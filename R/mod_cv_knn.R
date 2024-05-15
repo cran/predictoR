@@ -25,7 +25,7 @@ mod_cv_knn_ui <- function(id){
                  )),
                
                fluidRow(col_6(numericInput(ns("cvknn_step"), labelInput("probC"), value = 0.5, width = "100%", min = 0, max = 1, step = 0.1)),
-                        col_6(selectInput(ns("cvknn_cat"), choices = "",label =  labelInput("selectCat"), width = "100%"))), 
+                        col_6(selectInput(ns("cvknn_cat"), choices = "", label =  labelInput("selectCat"), width = "100%"))), 
                div(id = ns("texto"),
                    style = "display:block",withLoader(verbatimTextOutput(ns("txtcvknn")), 
                                                       type = "html", loader = "loader4")),

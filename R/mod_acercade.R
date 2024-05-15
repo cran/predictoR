@@ -24,7 +24,7 @@ mod_acercade_ui <- function(id){
     ),
     
     infoBoxPROMiDAT(
-      labelInput("version"), "3.0.3", icono = icon("file-code"))
+      labelInput("version"), "3.0.10", icono = icon("file-code"))
   )
 }
     

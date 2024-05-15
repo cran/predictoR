@@ -63,11 +63,11 @@ resumen.lineas <- function(datos.grafico, labels = c("Global", "repeticion")) {
 
 # Gráfico de barras para la comparación de modelos
 resumen.barras <- function(datos.grafico, labels = c("Global", "iteracion"), rotacion = FALSE) {
-
-    datos.grafico <- datos.grafico |>
-      dplyr::group_by( name, color ) |>
-      dplyr::summarise(value = mean(value), .groups = 'drop')
-    datos.grafico$name <- unlist(lapply(datos.grafico$name, validar.tamanno))
+  datos.grafico <- datos.grafico |>
+    dplyr::group_by(name, color) |>
+    dplyr::summarise(value = mean(value), .groups = 'drop')
+  
+  datos.grafico$name <- unlist(lapply(datos.grafico$name, validar.tamanno))
     
   resumen <- datos.grafico |>
     e_charts( name) |>
@@ -161,7 +161,7 @@ indices.cv <- function(category, cant.vc, kernels, MCs.cv){
   
   for (cat in category) {
     # Actualiza el tamaño para que almacene los resultados de cada kernel en cada validación
-    ind.categ[[cat]] <- vector(mode = "numeric",   length = cant.vc * length(kernels))
+    ind.categ[[cat]] <- vector(mode = "numeric", length = cant.vc * length(kernels))
   }
   # Colores de cada modelo para el gráfico 
   col_      <- gg_color_hue(length(kernels))
@@ -181,9 +181,10 @@ indices.cv <- function(category, cant.vc, kernels, MCs.cv){
                                     precision.global) # Guarda la PG para cada validación, se obtiene de las matrices de confución almacenadas
     
     for (cat in category) {
-      # Recorre las categorías de la variable a predecir para guardar su precisión. 
-      ind.categ[[cat]][indice:(n)] <- sapply(MCs.cv[[paste0("MCs.", kernels[kernel])]], 
-                                             precision(cat))
+      # Recorre las categorías de la variable a predecir para guardar su precisión.
+      aux <- sapply(MCs.cv[[paste0("MCs.", kernels[kernel])]], precision(cat))
+      ind.categ[[cat]][indice:(n)] <- aux
+      names(ind.categ[[cat]])[indice:(n)] <- rep(kernels[kernel], length(aux))
     }
     # Mueve el índice la cantidad de validación que hay 
     indice <- indice + cant.vc

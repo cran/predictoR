@@ -66,10 +66,12 @@ mod_ind_nuevos_ui <- function(id){
                    tabBoxPrmdt(
                      id = "BoxModeloa",
                      tabPanel(title = p(labelInput("seleParModel"),class = "wrapper-tag") ,solidHeader = FALSE, collapsible = FALSE, collapsed = FALSE, value = "crearModelo",
-                                div(
-                                  col_6(selectInput(inputId = ns("sel.predic.var.nuevos"), label = labelInput("seleccionarPredecir"), choices =  "", width = "100%")),
-                                  col_6(selectInput(inputId = ns("selectModelsPred"), label = labelInput("selectMod"),
-                                                    choices =  list("knn", "dt", "rf", "ada", "svm","bayes", "xgb", "nn", "rl", "rlr"), width = "100%"))
+                                fluidRow(
+                                  col_4(selectInput(inputId = ns("sel.predic.var.nuevos"), label = labelInput("seleccionarPredecir"), choices =  "", width = "100%")),
+                                  col_4(selectInput(inputId = ns("selectModelsPred"), label = labelInput("selectMod"),
+                                                    choices =  list("knn", "dt", "rf", "ada", "svm","bayes", "xgb", "nn", "rl", "rlr"), width = "100%")),
+                                  col_2(numericInput(ns("sel.model.corte"), label = labelInput("probC"), 0.5, 0, 1, 0.1, width = "100%")),
+                                  col_2(selectInput(ns("sel.corte.cat"), choices = "", label = labelInput("selectCat"), width = "100%"))
                                 ), hr(style = "border-top: 2px solid #cccccc;" ),
                               uiOutput(ns('opcModelsPredN')),
 
@@ -478,16 +480,15 @@ mod_ind_nuevos_server <- function(input, output, session, newCases, updateData2,
                           isolate(modelo)
                         },
                         ada    = {
-                          iter   <- isolate(input$iter.boosting.pred)
-                          maxdepth<-isolate(input$maxdepth.boosting.pred)
-                          minsplit<-isolate(input$minsplit.boosting.pred)
-                          isolate(modelo <- traineR::train.adabag(as.formula(var), data = train, mfinal = iter,
+                          iter     <- isolate(input$iter.boosting.pred)
+                          maxdepth <- isolate(input$maxdepth.boosting.pred)
+                          minsplit <- isolate(input$minsplit.boosting.pred)
+                          coeff    <- isolate(input$coeff.boosting.pred)
+                          isolate(modelo <- traineR::train.adabag(as.formula(var), data = train, mfinal = iter, coeflearn = coeff,
                                                           control = rpart.control(minsplit =minsplit, maxdepth = maxdepth)))
-                          isolate(codedioma$code <- append(codedioma$code, boosting.modelo (variable.pr = variable,
-                                                                                              iter        = iter,
-                                                                                              maxdepth    = maxdepth,
-                                                                                              minsplit    = minsplit,
-                                                                                              datos = dat.a)))
+                          isolate(codedioma$code <- append(codedioma$code, boosting.modelo(
+                            variable.pr = variable, iter = iter, maxdepth = maxdepth,
+                            minsplit = minsplit, coeflearn = coeff, datos = dat.a)))
                           isolate(modelo)
                         }
       )
@@ -529,18 +530,37 @@ mod_ind_nuevos_server <- function(input, output, session, newCases, updateData2,
     sel  <- newCases$m.seleccionado
     vari <- newCases$variable.predecir
     newCases$prediccion        <- NULL
+    choices <- as.character(unique(train[, vari]))
+    cat_sel <- input$sel.corte.cat
+    Corte <- input$sel.model.corte
     tipos  <- c(
         tr("numerico",   isolate(codedioma$idioma)),
         tr("categorico", isolate(codedioma$idioma))
     )
       tryCatch({
-        if(sel == "svm")
-        pred                <- predict(model, test[,-which(colnames(test) == vari)], type = 'class')       
-        else
-        pred                <- predict(model, test, type = 'class')
+        if(length(choices) == 2) {
+          if(sel == "svm") {
+            pred <- predict(model, test[,-which(colnames(test) == vari)], type = 'prob')    
+          } else {
+            pred <- predict(model, test, type = 'prob')
+          }
+          positive <- cat_sel
+          negative <- choices[choices != cat_sel][1]
+          Score <- pred$prediction[, positive]
+          pred  <- ifelse(Score > Corte, positive, negative)
+          
+        } else{
+          if(sel == "svm") {
+            pred <- predict(model, test[,-which(colnames(test) == vari)], type = 'class')
+            pred <- pred$prediction
+          } else {
+            pred <- predict(model, test, type = 'class')
+            pred <- pred$prediction
+          }
+        }
         
         datos               <- test
-        datos[,vari]        <- pred$prediction
+        datos[,vari]        <- pred
         newCases$prediccion <- pred
         nombre.columnas <- c("ID", colnames(datos))
         isolate(codedioma$code <- append(codedioma$code, "predic.nuevos <- predict(modelo.nuevos, datos.prueba.completos, type = 'class')"))
@@ -580,7 +600,7 @@ mod_ind_nuevos_server <- function(input, output, session, newCases, updateData2,
   #Agrega la predicción a los datos
   crear.datos.np <- function(){
     datos.aux.prueba <- newCases$datos.prueba
-    datos.aux.prueba[,newCases$variable.predecir]   <- newCases$prediccion$prediction
+    datos.aux.prueba[,newCases$variable.predecir]   <- newCases$prediccion
     
     return(datos.aux.prueba)
   }
@@ -722,9 +742,11 @@ mod_ind_nuevos_server <- function(input, output, session, newCases, updateData2,
                                          choices =  list("gini" = "gini", "Entropia" = "information")))))
     opc_bayes <- list(tags$span())
     
-    opc_potenciacion <- list(fluidRow(col_4(numericInput(ns("iter.boosting.pred"), tr("numTree", idioma), 20, width = "100%",min = 1)),
-                                      col_4(numericInput(ns("maxdepth.boosting.pred"),tr("maxdepth", idioma), 15, width = "100%",min = 1)),
-                                      col_4(numericInput(ns("minsplit.boosting.pred"),tr("minsplit", idioma), 20, width = "100%",min = 1))))
+    opc_potenciacion <- list(fluidRow(col_6(numericInput(ns("iter.boosting.pred"), tr("numTree", idioma), 20, width = "100%",min = 1)),
+                                      col_6(numericInput(ns("maxdepth.boosting.pred"),tr("maxdepth", idioma), 15, width = "100%",min = 1)),
+                                      col_6(numericInput(ns("minsplit.boosting.pred"),tr("minsplit", idioma), 20, width = "100%",min = 1)),
+                                      col_6(selectInput(inputId = ns("coeff.boosting.pred"), label = tr("selkernel", idioma), selected = 1,
+                                                        choices = c("Breiman", "Freund", "Zhu")))))
     opc_rl  <- list(tags$span())
    
     opc_rlr <- list(fluidRow(col_6(selectInput(inputId = ns("alpha.rlr.pred"), label = tr("selectAlg", idioma),selected = 1,
@@ -763,12 +785,26 @@ mod_ind_nuevos_server <- function(input, output, session, newCases, updateData2,
       updateSelectInput(session, "sel.predic.var.nuevos", choices = rev(colnames.empty(var.categoricas(newCases$datos.aprendizaje))))
       updateNumericInput(session, "kmax.knn.pred", value = round(sqrt(nrow(newCases$datos.aprendizaje))))
       updateNumericInput(session, "mtry.rf.pred",  value = round(sqrt(ncol(newCases$datos.aprendizaje) -1)))
-      
     }
   
     res <-  do.call(tagList, res)
 
     return(res)
+  })
+  
+  observeEvent(input$sel.predic.var.nuevos, {
+    datos <- newCases$datos.aprendizaje
+    n <- levels(datos[[input$sel.predic.var.nuevos]])
+    
+    if(length(n) == 2) {
+      shinyjs::show("sel.model.corte", anim = TRUE, animType = "fade")
+      shinyjs::show("sel.corte.cat", anim = TRUE, animType = "fade")
+      updateSelectInput(session, "sel.corte.cat", choices = n)
+    }else{
+      shinyjs::hide("sel.model.corte", anim = TRUE, animType = "fade")
+      shinyjs::hide("sel.corte.cat", anim = TRUE, animType = "fade")
+      updateSelectInput(session, "sel.corte.cat", choices = "")
+    }
   })
 }
     

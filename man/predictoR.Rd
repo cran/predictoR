@@ -14,10 +14,18 @@ Support Vector Machines and Bayesian Methods.
 \tabular{ll}{
 Package: \tab predictoR\cr
 Type: \tab Package\cr
-Version: \tab 3.0.1\cr
-Date: \tab 2022-02-09\cr
+Version: \tab 3.0.9\cr
+Date: \tab 2024-05-15\cr
 License: \tab GPL (>=2)\cr
 }
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://promidat.website/}
+  \item Report bugs at \url{https://github.com/PROMiDAT/predictoR/issues}
+}
+
 }
 \author{
 Oldemar Rodriguez Rojas \cr

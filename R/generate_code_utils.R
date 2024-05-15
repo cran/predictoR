@@ -26,12 +26,13 @@ codigo.MC <- function(model.name = "knn", alg = NULL){
 # Códigos de BOOSTING --------------------------------------------------------------------------------------------------------
 
 #Crea el modelo BOOSTING
-boosting.modelo <- function(variable.pr = NULL, iter = 50, maxdepth = 1, minsplit = 1, datos = "datos.aprendizaje"){
+boosting.modelo <- function(variable.pr = NULL, iter = 50, maxdepth = 1, minsplit = 1, coeflearn = "Breiman", datos = "datos.aprendizaje"){
   iter     <- ifelse(!is.numeric(iter), 50, iter)
   maxdepth <- ifelse(!is.numeric(maxdepth) && maxdepth > 30, 15, maxdepth)
   minsplit <- ifelse(!is.numeric(minsplit), 1, minsplit)
-  codigo   <- paste0("modelo.boosting <<- train.adabag(",variable.pr,"~., data = ",datos,", mfinal = ",iter,",
-                   control = rpart.control(minsplit = ",minsplit,", maxdepth = ",maxdepth,"))\n")
+  codigo   <- paste0(
+    "modelo.boosting <<- train.adabag(", variable.pr, "~., data = ", datos, ", mfinal = ", iter, 
+    ", coeflearn = '", coeflearn, "', control = rpart.control(minsplit = ", minsplit, ", maxdepth = ", maxdepth, "))\n")
   return(codigo)
 }
 
