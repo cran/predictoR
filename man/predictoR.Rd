@@ -2,6 +2,7 @@
 % Please edit documentation in R/predictoR.R
 \docType{package}
 \name{predictoR}
+\alias{predictoR-package}
 \alias{predictoR}
 \title{Predictive Data Analysis System}
 \description{
@@ -14,8 +15,8 @@ Support Vector Machines and Bayesian Methods.
 \tabular{ll}{
 Package: \tab predictoR\cr
 Type: \tab Package\cr
-Version: \tab 3.0.9\cr
-Date: \tab 2024-05-15\cr
+Version: \tab 4.0.5\cr
+Date: \tab 2024-10-07\cr
 License: \tab GPL (>=2)\cr
 }
 }

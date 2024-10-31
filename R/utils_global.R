@@ -16,6 +16,39 @@ e_JS <- function (...)
   structure(vec, class = unique(c("JS_EVAL", oldClass(vec))))
 }
 
+#' Convierte toda la tabla a código dummy.
+#'
+#' @param DF a data.frame.
+#' @param exclude variables of data.frame exclude of conversion.
+#'
+#' @author Diego Jimenez <diego.jimenezs@promidat.com>
+#' @export data.frame.dummy
+#' @examples
+#' data.frame.dummy(iris)
+#' 
+data.frame.dummy <- function (DF, exclude = NULL) {
+  res <- data.frame(matrix(NA, nrow = nrow(DF)))
+  
+  for (x in names(DF)) {
+    if(x %in% exclude) {
+      res[[x]] <- DF[[x]]
+    } else if(is.numeric(DF[[x]])) {
+      res[[x]] <- DF[[x]]
+    } else {
+      categorias <- levels(DF[[x]])
+      if(length(categorias) > 1) {
+        categorias <- categorias[-1]
+      }
+      for (categoria in categorias) {
+        nueva.var <- as.numeric(DF[[x]] == categoria)
+        res[[paste0(x, ".", categoria)]] <- nueva.var
+      }
+    }
+  }
+  
+  return(res[, -1])
+}
+
 # Validacion comun para todos los modelos
 validar.datos <- function(print = TRUE,variable.predecir,datos.aprendizaje) {
   # Validaciones
@@ -52,8 +85,8 @@ obj.predic <- function(prediction = NULL, idioma, test, var.pred){
                        options = list(dom = "frtip", pageLength = 10)))
 }
 
-
-# Cierra un menú según su tabName
+#' Cierra un menú según su tabName
+#' @noRd
 close.menu <- function(tabname = NA, valor = T) {
   select <- paste0("a[href^='#shiny-tab-", tabname, "']")
   if(valor){
@@ -210,20 +243,6 @@ e_global_gauge<- function(value = 100, label = "Label", color1 = "#B5E391", colo
     ) 
 }
 
-contr.dummy <- function (n, contrasts = TRUE) 
-{
-  if (length(n) <= 1) {
-    if (is.numeric(n) && length(n) == 1 && n > 1) 
-      levels <- 1:n
-    else stop("contrasts are not defined for 0 degrees of freedom")
-  }
-  else levels <- n
-  lenglev <- length(levels)
-  cont <- array(0, c(lenglev, lenglev), list(levels, levels))
-  cont[col(cont) == row(cont)] <- 1
-  cont
-}
-
 # Concatena y ejecuta un string como código
 exe <- function(...){
   eval(parse(text = paste0(...)))
@@ -279,9 +298,8 @@ rpart.control <- function (minsplit = 20L, minbucket = round(minsplit/3), cp = 0
        maxdepth = maxdepth, xval = xval)
 }
 
-
-#Funciones tomadas del paquete PSYCH
-
+#' Funciones tomadas del paquete PSYCH
+#' @noRd
 pairs.panels <- function (x, smooth = TRUE, scale = FALSE, density = TRUE, ellipses = TRUE,
                           digits = 2, method = "pearson", pch = 20, lm = FALSE, cor = TRUE,
                           jiggle = FALSE, factor = 2, hist.col = "cyan", show.points = TRUE,
@@ -718,4 +736,79 @@ fisherz <- function (rho)
 gg_color_hue <- function(n) {
   hues <- seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+# Funciones tomadas del paquete kknn
+
+#' Returns a matrix of contrasts for the train.kknn.
+#'
+#' @param n A vector containing levels of a factor, or the number of levels.
+#' @param contrasts A logical value indicating whether contrasts should be computed.
+#'
+#' @author Joseline Quiros <joseline.quiros@promidat.com>
+#' @export contr.dummy
+#' @examples
+#' contr.dummy(5)
+#' 
+contr.dummy <- function (n, contrasts = TRUE) 
+{
+  if (length(n) <= 1) {
+    if (is.numeric(n) && length(n) == 1 && n > 1) 
+      levels <- 1:n
+    else stop("contrasts are not defined for 0 degrees of freedom")
+  }
+  else levels <- n
+  lenglev <- length(levels)
+  cont <- array(0, c(lenglev, lenglev), list(levels, levels))
+  cont[col(cont) == row(cont)] <- 1
+  cont
+}
+
+#' Returns a matrix of contrasts for the train.kknn.
+#'
+#' @param n A vector containing levels of a factor, or the number of levels.
+#' @param contrasts A logical value indicating whether contrasts should be computed.
+#'
+#' @author Joseline Quiros <joseline.quiros@promidat.com>
+#' @export contr.metric
+#' @examples
+#' contr.metric(5)
+#' 
+contr.metric <- function (n, contrasts = TRUE) 
+{
+  if (length(n) <= 1) {
+    if (is.numeric(n) && length(n) == 1 && n > 1) 
+      levels <- 1:n
+    else stop("contrasts are not defined for 0 degrees of freedom")
+  }
+  else levels <- n
+  lenglev <- length(levels)
+  cont <- array((1:lenglev) - (1 + lenglev)/2, c(lenglev, 1), 
+                list(levels, NULL))
+  cont
+}
+
+#' Returns a matrix of contrasts for the train.kknn.
+#'
+#' @param n A vector containing levels of a factor, or the number of levels.
+#' @param contrasts A logical value indicating whether contrasts should be computed.
+#'
+#' @author Joseline Quiros <joseline.quiros@promidat.com>
+#' @export contr.ordinal
+#' @examples
+#' contr.ordinal(5)
+#' 
+contr.ordinal <- function (n, contrasts = TRUE) 
+{
+  if (length(n) <= 1) {
+    if (is.numeric(n) && length(n) == 1 && n > 1) 
+      levels <- 1:n
+    else stop("contrasts are not defined for 0 degrees of freedom")
+  }
+  else levels <- n
+  lenglev <- length(levels)
+  cont <- array(0.5, c(lenglev, lenglev - 1), list(levels, 
+                                                   NULL))
+  cont[lower.tri(cont)] <- -0.5
+  cont
 }

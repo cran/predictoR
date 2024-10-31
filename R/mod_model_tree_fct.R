@@ -33,7 +33,8 @@ path.rpart <- function (tree, nodes, pretty = 0, print.it = TRUE)
   invisible(path)
 }
 
-
+#' Funcion rpart
+#' @noRd
 labels.rpart <- function (object, digits = 4, minlength = 1L, pretty, collapse = TRUE, 
           ...) 
 {

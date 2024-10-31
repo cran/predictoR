@@ -9,7 +9,7 @@
 .shiny-text-output{
   overflow-y:scroll !important;
   min-height: 360px !important;
-  max-height: 400px !important;
+  max-height: 70vh !important;
 }
 
 .wrapper-tag {

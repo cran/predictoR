@@ -1,6 +1,5 @@
 #' @name predictoR
 #' @aliases predictoR
-#' @docType package
 #' @title Predictive Data Analysis System
 #' @author Oldemar Rodriguez Rojas \cr
 #' Maintainer: Oldemar Rodriguez Rojas <oldemar.rodriguez@ucr.ac.cr>
@@ -13,16 +12,18 @@
 #' \tabular{ll}{
 #' Package: \tab predictoR\cr
 #' Type: \tab Package\cr
-#' Version: \tab 3.0.10\cr
-#' Date: \tab 2024-05-15\cr
+#' Version: \tab 4.1.1\cr
+#' Date: \tab 2024-10-31\cr
 #' License: \tab GPL (>=2)\cr
 #' }
 #' @keywords package
-#' @docType package
+"_PACKAGE"
 
 NULL
 utils::globalVariables(c(
-  "datos","<<-", "z", "prop", "x",
+  "datos","<<-", "z", "prop", "x", "X", "lower", "upper",
   "OOB", "cont", "MeanDecreaseAccuracy", 
   "plot.MC", "y", "importancia", "count", 
-  "desc", "name", "value", "color", "var"))
+  "desc", "name", "value", "color", "var",
+  "Modelo", "nombre", "PG", "Feature", "Corte",
+  "width.SJ", "tipo", "prec", "model", "Weight"))

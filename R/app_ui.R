@@ -11,9 +11,9 @@
 #' @import htmltools
 #' @import shinycustomloader
 #' @import shinydashboardPlus
-#' @importFrom xtable xtable
+#' @importFrom grDevices dev.flush dev.hold
 #' @importFrom rpart.plot prp
-#' @importFrom DT tableHeader
+#' @importFrom DT tableHeader formatStyle styleEqual
 #' @importFrom glmnet cv.glmnet
 #' @importFrom utils read.table write.csv head
 #' @importFrom grDevices adjustcolor hcl rainbow dev.cur
@@ -49,7 +49,7 @@ app_ui <- function(request) {
           tags$div(style = "padding-top:10px;"),
           menuItem(labelInput("data"), icon = icon("database"),
                    tabName = "cargar"),
-          menuItem(labelInput("basico"), tabName = "parte1",
+          menuItem(labelInput("basico"), tabName = "exploratorio",
                    icon = icon("square-poll-vertical"),
                    menuSubItem(labelInput("resumen"), "resumen",
                                icon = icon("sort-numeric-down")),
@@ -64,63 +64,59 @@ app_ui <- function(request) {
                    menuSubItem(labelInput("poderpred"), "poderPred",
                                icon = icon("rocket"))
           ),
-          menuItem(labelInput("tt"), tabName = "parte2", 
+          menuItem(labelInput("tt"), tabName = "TrainTest", 
                    icon = icon("th-list"),
-                   menuSubItem(labelInput("knnl"),tabName = "knn",
+                   menuSubItem(labelInput("knnl"), tabName = "knn",
                                icon = icon("dot-circle")),
                    menuSubItem(labelInput("svml"),tabName = "svm",
                                icon = icon("vector-square")),
-                   menuSubItem(labelInput("dtl"),tabName = "dt",
+                   menuSubItem(labelInput("dtl"), tabName = "tree",
                                icon = icon("tree")),                                         
-                   menuSubItem(labelInput("rfl"),tabName = "rf",
+                   menuSubItem(labelInput("rfl"), tabName = "rndf",
                                icon = icon("sitemap")),
+                   menuSubItem(labelInput("bl"), tabName = "boost",
+                               icon = icon("rocket")),
                    menuSubItem(labelInput("xgb"),tabName = "xgb",
                                icon = icon("project-diagram")),
-                   menuSubItem(labelInput("bl"),tabName = "boosting",
-                               icon = icon("rocket")),
-                   menuSubItem("Bayes",tabName = "bayes",
+                   menuSubItem("Bayes", tabName = "bayes",
                                icon = icon("dice")),
-                   menuSubItem(labelInput("nn"),tabName = "nn",
+                   menuSubItem(labelInput("nn"),tabName = "nnet",
                                icon = icon("brain")),
-                   menuSubItem(labelInput("rl"),tabName = "rl",
+                   menuSubItem(labelInput("rl"),tabName = "reg",
                                icon = icon("chart-line")),
-                   menuSubItem(labelInput("rlr"),tabName = "rlr",
+                   menuSubItem(labelInput("rlr"),tabName = "regp",
                                icon = icon("wave-square")),
                    menuSubItem(labelInput("lda"),tabName = "lda",
                                icon = icon("chart-gantt")),
                    menuSubItem(labelInput("qda"),tabName = "qda",
-                               icon = icon("superscript")),
-                   menuSubItem(labelInput("comparacion"), tabName = "comparar", 
-                               icon = icon("balance-scale")),
-                   menuSubItem(labelInput("varError"), tabName = "varerr", 
-                               icon = icon("triangle-exclamation"))),
-          menuItem(labelInput("calibracion"), tabName = "calibracion",#server, award battle-net brain bug buffer check-circle chart-line chart-bar
+                               icon = icon("superscript"))),
+          menuItem(labelInput("crossval"), tabName = "cv",
                    icon = icon("gears"),
-                   menuSubItem(labelInput("knnl"),tabName = "cv_knn",
+                   menuSubItem(labelInput("knnl"), tabName = "cv_knn",
                                icon = icon("dot-circle")),
-                   menuSubItem(labelInput("svml"),tabName = "cv_svm",
+                   menuSubItem(labelInput("svml"), tabName = "cv_svm",
                                icon = icon("vector-square")),
-                   menuSubItem(labelInput("dtl"),tabName = "cv_dt",
+                   menuSubItem(labelInput("dtl"), tabName = "cv_tree",
                                icon = icon("tree")),                                         
-                   menuSubItem(labelInput("rfl"),tabName = "cv_rf",
+                   menuSubItem(labelInput("rfl"), tabName = "cv_rndf",
                                icon = icon("sitemap")),
-                   menuSubItem(labelInput("xgb"),tabName = "cv_xgb",
-                               icon = icon("project-diagram")),
-                   menuSubItem("Bayes",tabName = "cv_bayes",
-                               icon = icon("dice")),
-                   menuSubItem(labelInput("bl"),tabName = "cv_boosting",
+                   menuSubItem(labelInput("bl"), tabName = "cv_boost",
                                icon = icon("rocket")),
-                   menuSubItem(labelInput("rl"),tabName = "cv_rl",
+                   menuSubItem(labelInput("xgb"), tabName = "cv_xgb",
+                               icon = icon("project-diagram")),
+                   menuSubItem("Bayes", tabName = "cv_bayes",
+                               icon = icon("dice")),
+                   menuSubItem(labelInput("rl"), tabName = "cv_reg",
                                icon = icon("chart-line")),
-                   menuSubItem(labelInput("rlr"),tabName = "cv_rlr",
+                   menuSubItem(labelInput("rlr"), tabName = "cv_regp",
                                icon = icon("wave-square")),
-                   menuSubItem(labelInput("lda"),tabName = "cv_lda",
+                   menuSubItem(labelInput("lda"), tabName = "cv_lda",
                                icon = icon("chart-gantt")),
-                   menuSubItem(labelInput("qda"),tabName = "cv_qda",
+                   menuSubItem(labelInput("qda"), tabName = "cv_qda",
                                icon = icon("superscript"))
                    ),
-          menuItem(labelInput("seleModel"), tabName = "cv_cv", 
-                   icon = icon("laptop-code")),
+          menuItem(labelInput("comparacion"), tabName = "evaluar", 
+                   icon = icon("balance-scale")),
           menuItem(labelInput("predicnuevos"), tabName = "predNuevos", 
                    icon = icon("table")),
           menuItem(labelInput("acercade"), tabName = "acercaDe",
@@ -129,13 +125,11 @@ app_ui <- function(request) {
           menu.idioma(),
           hr(), 
           img(src = "img/predictoR.png", style = "margin-left: auto;margin-right: auto;display: block;width: 80%;"),
-          tags$div(style = "display:none;",
-                   sliderInput(inputId = "aux", min = 2, value = 2,
-                               label = "Cantidad de Clusters", max = 10),
-                   radioSwitch("deleteNAaux", "eliminanaaux", c("eliminarai", "impsutar")),
-                   
-                   colourpicker::colourInput(
-                     "auxColor", NULL, value = "red", allowTransparent = T)
+          tags$div(
+            style = "display:none;",
+            sliderInput("auxs", min = 2, value = 2, label = "auxs", max = 10),
+            radioSwitch("auxr", "auxr", c("opc1", "opc2")),
+            colourpicker::colourInput("auxc", NULL, value = "red")
           )
         )
       ),
@@ -170,107 +164,41 @@ app_ui <- function(request) {
           tabItem(tabName = "poderPred", 
                   mod_poder_pred_ui("poder_pred_ui_1")),
           
-          # K Vecinos
-          tabItem(tabName = "knn", 
-                  mod_knn_ui("knn_ui_1")),   
+          ###################### Entrenamiento-Prueba #########################
+          tabItem(tabName = "knn", mod_train_test_ui("tt_knn_ui", "knn")),   
+          tabItem(tabName = "svm", mod_train_test_ui("tt_svm_ui", "svm")),
+          tabItem(tabName = "tree", mod_train_test_ui("tt_tree_ui", "tree")),
+          tabItem(tabName = "rndf", mod_train_test_ui("tt_rndf_ui", "rndf")),
+          tabItem(tabName = "boost", mod_train_test_ui("tt_boost_ui", "boost")),       
+          tabItem(tabName = "xgb", mod_train_test_ui("tt_xgb_ui", "xgb")),
+          tabItem(tabName = "bayes", mod_train_test_ui("tt_bayes_ui", "bayes")),
+          tabItem(tabName = "nnet", mod_train_test_ui("tt_nnet_ui", "nnet")),         
+          tabItem(tabName = "reg", mod_train_test_ui("tt_reg_ui", "reg")),      
+          tabItem(tabName = "regp", mod_train_test_ui("tt_regp_ui", "regp")), 
+          tabItem(tabName = "lda", mod_train_test_ui("tt_lda_ui", "lda")),
+          tabItem(tabName = "qda", mod_train_test_ui("tt_qda_ui", "qda")),
           
-          # Support Vector Machines
-          tabItem(tabName = "svm", 
-                  mod_svm_ui("svm_ui_1")),
+          ######################## Validación Cruzada #########################
+          tabItem(tabName = "cv_knn", mod_cross_val_ui("cv_knn_ui", "knn")),
+          tabItem(tabName = "cv_svm", mod_cross_val_ui("cv_svm_ui", "svm")),
+          tabItem(tabName = "cv_tree", mod_cross_val_ui("cv_tree_ui", "tree")),
+          tabItem(tabName = "cv_rndf", mod_cross_val_ui("cv_rndf_ui", "rndf")),
+          tabItem(tabName = "cv_boost", mod_cross_val_ui("cv_boost_ui", "boost")),
+          tabItem(tabName = "cv_xgb", mod_cross_val_ui("cv_xgb_ui", "xgb")),
+          tabItem(tabName = "cv_bayes", mod_cross_val_ui("cv_bayes_ui", "bayes")),
+          tabItem(tabName = "cv_reg", mod_cross_val_ui("cv_reg_ui", "reg")),
+          tabItem(tabName = "cv_regp", mod_cross_val_ui("cv_regp_ui", "regp")),
+          tabItem(tabName = "cv_lda", mod_cross_val_ui("cv_lda_ui", "lda")),
+          tabItem(tabName = "cv_qda", mod_cross_val_ui("cv_qda_ui", "qda")),
           
-          # Decision Trees
-          tabItem(tabName = "dt", 
-                  mod_d_tree_ui("d_tree_ui_1")),
-          
-          # Random Forest
-          tabItem(tabName = "rf", 
-                  mod_r_forest_ui("r_forest_ui_1")),
-          
-          # XGBoosting
-          tabItem(tabName = "xgb", 
-                  mod_xgboosting_ui("xgboosting_ui_1")),
-          
-          # Potenciacion
-          tabItem(tabName = "boosting", 
-                  mod_boosting_ui("boosting_ui_1")),          
-          
-          # Bayes
-          tabItem(tabName = "bayes", 
-                  mod_bayes_ui("bayes_ui_1")),
-          
-          # Neural Net
-          tabItem(tabName = "nn", 
-                  mod_neural_net_ui("neural_net_ui_1")),         
-          
-          # Logistic Regression
-          tabItem(tabName = "rl", 
-                  mod_l_regression_ui("l_regression_ui_1")),      
-          
-          # Penalized Logistic Regression
-          tabItem(tabName = "rlr", 
-                  mod_penalized_l_r_ui("penalized_l_r_ui_1")), 
-          
-          # Linear Discriminant Analysis
-          tabItem(tabName = "lda", 
-                  mod_lda_ui("lda_ui_1")),
-          
-          # Quadratic Discriminant Analysis
-          tabItem(tabName = "qda", 
-                  mod_qda_ui("qda_ui_1")),
-          
-          # Comparación de Modelos
-          tabItem(tabName = "comparar", 
-                  mod_comparacion_ui("comparacion_ui_1")),  
-          
-          # Variación del Error
-          tabItem(tabName = "varerr", 
-                  mod_varerr_ui("varerr_ui_1")),   
-          
-          
-          ############### Validación Cruzada ############### 
-          tabItem(tabName = "cv_knn", 
-                  mod_cv_knn_ui("cv_knn_ui_1")),
-          
-          tabItem(tabName = "cv_svm", 
-                  mod_cv_svm_ui("cv_svm_ui_1")),
-          
-          tabItem(tabName = "cv_dt", 
-                  mod_cv_dt_ui("cv_dt_ui_1")),
-          
-          tabItem(tabName = "cv_rf", 
-                  mod_cv_rf_ui("cv_rf_ui_1")),
-          
-          tabItem(tabName = "cv_xgb", 
-                  mod_cv_xgb_ui("cv_xgb_ui_1")),
-          
-          tabItem(tabName = "cv_boosting", 
-                  mod_cv_boost_ui("cv_boost_ui_1")),
-          
-          tabItem(tabName = "cv_rlr", 
-                  mod_cv_rlr_ui("cv_rlr_ui_1")),
-          
-          tabItem(tabName = "cv_bayes", 
-                  mod_cv_bayes_ui("cv_bayes_ui_1")),
-          
-          tabItem(tabName = "cv_rl", 
-                  mod_cv_rl_ui("cv_rl_ui_1")),
-          
-          tabItem(tabName = "cv_lda", 
-                  mod_cv_lda_ui("cv_lda_ui_1")),
-          
-          tabItem(tabName = "cv_qda", 
-                  mod_cv_qda_ui("cv_qda_ui_1")),
-          
-          tabItem(tabName = "cv_cv", 
-                  mod_cross_validation_ui("cross_validation_ui_1")),
+          # Evaluación de Modelos
+          tabItem(tabName = "evaluar", mod_evaluacion_ui("evaluacion_ui_1")),  
           
           # Predicción Individuos Nuevos
-          tabItem(tabName = "predNuevos", 
-                  mod_ind_nuevos_ui("ind_nuevos_ui_1")), 
+          tabItem(tabName = "predNuevos", mod_ind_nuevos_ui("ind_nuevos_ui_1")), 
           
           # Acerca De
-          tabItem(tabName = "acercaDe", 
-                  mod_acercade_ui("acercade_ui_1"))
+          tabItem(tabName = "acercaDe", mod_acercade_ui("acercade_ui_1"))
         )
       ),
       dashboardControlbar(
@@ -294,7 +222,7 @@ app_ui <- function(request) {
 #' @import shiny
 #' @importFrom golem add_resource_path activate_js favicon bundle_resources
 #' @noRd
-golem_add_external_resources <- function(){
+golem_add_external_resources <- function() {
   
   jsCode <- '
   get_inputs = function() {

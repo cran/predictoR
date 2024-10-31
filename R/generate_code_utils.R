@@ -146,7 +146,8 @@ rf.importance.plot <- function() {
   ))
 }
 
-#Código del gráfico de error del modelo
+#' Código del gráfico de error del modelo
+#' @noRd
 plot.rf.error <- function(){
   return(paste0("e_rf_error(modelo.rf)\n"))
 }

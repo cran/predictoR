@@ -1,11 +1,13 @@
 #' The application server-side
-#' 
-#' @param input,output,session Internal parameters for {shiny}. 
-#'     DO NOT REMOVE.
+#'
+#' @description A shiny Module.
+#'
+#' @param input,output,session Internal parameters for `{shiny}`.
+#'
+#' @noRd 
+#'
 #' @import shiny
 #' @keywords internal
-#' @noRd
-
 app_server <- function(input, output, session) {
   
   ##################################  Options  ################################
@@ -28,13 +30,12 @@ app_server <- function(input, output, session) {
   ##################################  Variables  ##############################
   updateData <- rv(datos              = NULL, 
                    originales         = NULL, 
-                   datos.tabla        = NULL, 
-                   datos.prueba       = NULL, 
-                   datos.aprendizaje  = NULL,
+                   datos.tabla        = NULL,
                    variable.predecir  = NULL,
                    indices            = NULL, 
                    numGrupos          = NULL, 
-                   numValC            = NULL, 
+                   numValC            = NULL,
+                   numTT              = NULL, 
                    grupos             = NULL)
   
   codedioma <- rv(idioma             = NULL,
@@ -59,29 +60,19 @@ app_server <- function(input, output, session) {
                        prediccion        = NULL,
                        variable.predecir = NULL)
   
-  modelos    <-  rv(svm      = NULL,
-                    knn      = NULL,
-                    bayes    = NULL,
-                    rl       = NULL,
-                    rlr      = NULL,
-                    xgb      = NULL,
-                    boosting = NULL,
-                    rf       = NULL,
-                    nn       = NULL,
-                    dt       = NULL)
+  modelos <- rv(knn   = NULL,
+                svm   = NULL,
+                trees = NULL,
+                rndf  = NULL,
+                boost = NULL,
+                xgb   = NULL,
+                bayes = NULL,
+                nnet  = NULL,
+                reg   = NULL,
+                regp  = NULL,
+                lda   = NULL,
+                qda   = NULL)
   
-  modelos2    <-  rv(svm      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     knn      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     bayes    = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     rl       = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     rlr      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     xgb      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     boosting = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     rf       = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     nn       = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     dt       = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     lda      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                     qda      = list(n = 0, mcs = vector(mode = "list", length = 10)))
   ###################################  Update  ################################
 
   #' Update on Language
@@ -92,18 +83,18 @@ app_server <- function(input, output, session) {
   })
   
   observeEvent(updateData$datos, {
-    modelos2    <-  rv(svm      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       knn      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       bayes    = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       rl       = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       rlr      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       xgb      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       boosting = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       rf       = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       nn       = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       dt       = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       lda      = list(n = 0, mcs = vector(mode = "list", length = 10)),
-                       qda      = list(n = 0, mcs = vector(mode = "list", length = 10)))
+    modelos <- rv(knn   = NULL,
+                  svm   = NULL,
+                  trees = NULL,
+                  rndf  = NULL,
+                  boost = NULL,
+                  xgb   = NULL,
+                  bayes = NULL,
+                  nnet  = NULL,
+                  reg   = NULL,
+                  regp  = NULL,
+                  lda   = NULL,
+                  qda   = NULL)
   })
   
   # Update Code
@@ -137,53 +128,38 @@ app_server <- function(input, output, session) {
     }
   )
   
-  #' Enable/disable on load data
   observe({
-    element <- "#sidebarItemExpanded li"
-    menu.values <- c(
-      "[class^=treeview]",  " a[data-value=acp]",  " a[data-value=parte1]", " a[data-value=cj]",
-      " a[data-value=kmedias]", " a[data-value=reporte]")
+    shinyjs::disable(selector = 'a[href^="#shiny-tab-exploratorio"]')
+    shinyjs::disable(selector = 'a[href^="#shiny-tab-TrainTest"]')
+    shinyjs::disable(selector = 'a[href^="#shiny-tab-cv"]')
+    shinyjs::disable(selector = 'a[href^="#shiny-tab-evaluar"]')
     
-    lapply(menu.values, function(i){
-      if(is.null(updateData$datos) || ncol(updateData$datos) < 1) {
-        addClass(class = "disabled", selector = paste0(element, i))
-      } else {
-        removeClass(class = "disabled", selector = paste0(element, i))
-      }
-    })
+    if(!is.null(updateData$datos)) {
+      shinyjs::enable(selector = 'a[href^="#shiny-tab-exploratorio"]')
+    }
     
-    menu.values.segment <- c(
-      " a[data-value=poderPred]", " a[data-value=parte2]", " a[data-value=knn]")
+    if(!is.null(updateData$numTT) & is.null(updateData$numValC)) {
+      shinyjs::enable(selector = 'a[href^="#shiny-tab-TrainTest"]')
+    }
     
-    lapply(menu.values.segment, function(i){
-      if(is.null(updateData$datos.prueba) || ncol(updateData$datos.prueba) < 1) {
-        shinyjs::disable(selector = 'a[href^="#shiny-tab-parte2"]')
-        shinyjs::disable(selector = 'a[href^="#shiny-tab-comparar"]')
-        addClass(class = "disabled", selector = paste0(element, i))
-      } else {
-        removeClass(class = "disabled", selector = paste0(element, i))
-        shinyjs::enable(selector = 'a[href^="#shiny-tab-parte2"]')
-        shinyjs::enable(selector = 'a[href^="#shiny-tab-comparar"]')
-        
+    if(!is.null(updateData$numValC)) {
+      shinyjs::enable(selector = 'a[href^="#shiny-tab-cv"]')
+    }
+    
+    for (modelo in names(modelos)) {
+      if(!is.null(modelos[[modelo]])) {
+        shinyjs::enable(selector = 'a[href^="#shiny-tab-evaluar"]')
       }
-      if(is.null(updateData$grupos) || (is.null(updateData$numValC) && updateData$numValC <= 1)) {
-        shinyjs::disable(selector = 'a[href^="#shiny-tab-calibracion"]')
-        shinyjs::disable(selector = 'a[href^="#shiny-tab-cv_cv"]')
-      } else {
-        shinyjs::enable(selector = 'a[href^="#shiny-tab-calibracion"]')
-        shinyjs::enable(selector = 'a[href^="#shiny-tab-cv_cv"]')
-        shinyjs::enable(selector = 'a[data-value=poderPred]')
-      }
-      
-    })
+    }
   })
   
-  
   ###################################  Modules  ###############################
-  #Carga de Datos
+  
+  # Carga de Datos
   loadeR::mod_carga_datos_server("carga_datos_ui_1", updateData, modelos, codedioma, "predictoR")
   loadeR::mod_carga_datos_server("carga_datos_ui_2", updateData2, NULL, codedioma, "discoveR")
-  #Estadísticas Básicas
+  
+  # Estadísticas Básicas
   loadeR::mod_r_numerico_server("r_numerico_ui_1",         updateData, codedioma)
   loadeR::mod_normal_server("normal_ui_1",                 updateData, codedioma)
   loadeR::mod_dispersion_server("dispersion_ui_1",         updateData, codedioma)
@@ -191,40 +167,38 @@ app_server <- function(input, output, session) {
   loadeR::mod_correlacion_server("correlacion_ui_1",       updateData, codedioma)
   mod_poder_pred_server("poder_pred_ui_1",                 updateData, codedioma)
   
-  #Aprendizaje Supervisado
-  callModule(mod_knn_server,            "knn_ui_1",            updateData, modelos, codedioma, modelos2)
-  callModule(mod_svm_server,            "svm_ui_1",            updateData, modelos, codedioma, modelos2)
-  callModule(mod_d_tree_server,         "d_tree_ui_1",         updateData, modelos, codedioma, modelos2)
-  callModule(mod_r_forest_server,       "r_forest_ui_1",       updateData, modelos, codedioma, modelos2)
-  callModule(mod_xgboosting_server,     "xgboosting_ui_1",     updateData, modelos, codedioma, modelos2)
-  callModule(mod_boosting_server,       "boosting_ui_1",       updateData, modelos, codedioma, modelos2)
-  callModule(mod_bayes_server,          "bayes_ui_1",          updateData, modelos, codedioma, modelos2)
-  callModule(mod_neural_net_server,     "neural_net_ui_1",     updateData, modelos, codedioma, modelos2)
-  callModule(mod_l_regression_server,   "l_regression_ui_1",   updateData, modelos, codedioma, modelos2)
-  callModule(mod_penalized_l_r_server,  "penalized_l_r_ui_1",  updateData, modelos, codedioma, modelos2)
-  callModule(mod_lda_server,            "lda_ui_1",            updateData, modelos, codedioma, modelos2)
-  callModule(mod_qda_server,            "qda_ui_1",            updateData, modelos, codedioma, modelos2)
+  ########################## Entrenamiento-Prueba #############################
+  callModule(mod_train_test_server, "tt_knn_ui",   updateData, modelos, "knn", codedioma)
+  callModule(mod_train_test_server, "tt_svm_ui",   updateData, modelos, "svm", codedioma)
+  callModule(mod_train_test_server, "tt_tree_ui",  updateData, modelos, "tree", codedioma)
+  callModule(mod_train_test_server, "tt_rndf_ui",  updateData, modelos, "rndf", codedioma)
+  callModule(mod_train_test_server, "tt_boost_ui", updateData, modelos, "boost", codedioma)
+  callModule(mod_train_test_server, "tt_xgb_ui",   updateData, modelos, "xgb", codedioma)
+  callModule(mod_train_test_server, "tt_bayes_ui", updateData, modelos, "bayes", codedioma)
+  callModule(mod_train_test_server, "tt_nnet_ui",  updateData, modelos, "nnet", codedioma)
+  callModule(mod_train_test_server, "tt_reg_ui",   updateData, modelos, "reg", codedioma)
+  callModule(mod_train_test_server, "tt_regp_ui",  updateData, modelos, "regp", codedioma)
+  callModule(mod_train_test_server, "tt_lda_ui",   updateData, modelos, "lda", codedioma)
+  callModule(mod_train_test_server, "tt_qda_ui",   updateData, modelos, "qda", codedioma)
   
-  #Comparación de Modelos
-  callModule(mod_comparacion_server,    "comparacion_ui_1",    updateData, modelos, codedioma, modelos2)
-  callModule(mod_varerr_server,         "varerr_ui_1",         updateData, modelos, codedioma, modelos2)
+  ############################# Validación Cruzada ############################
+  callModule(mod_cross_val_server, "cv_knn_ui",   updateData, modelos, "knn", codedioma)
+  callModule(mod_cross_val_server, "cv_svm_ui",   updateData, modelos, "svm", codedioma)
+  callModule(mod_cross_val_server, "cv_tree_ui",  updateData, modelos, "tree", codedioma)
+  callModule(mod_cross_val_server, "cv_rndf_ui",  updateData, modelos, "rndf", codedioma)
+  callModule(mod_cross_val_server, "cv_boost_ui", updateData, modelos, "boost", codedioma)
+  callModule(mod_cross_val_server, "cv_xgb_ui",   updateData, modelos, "xgb", codedioma)
+  callModule(mod_cross_val_server, "cv_bayes_ui", updateData, modelos, "bayes", codedioma)
+  callModule(mod_cross_val_server, "cv_nnet_ui",  updateData, modelos, "nnet", codedioma)
+  callModule(mod_cross_val_server, "cv_reg_ui",   updateData, modelos, "reg", codedioma)
+  callModule(mod_cross_val_server, "cv_regp_ui",  updateData, modelos, "regp", codedioma)
+  callModule(mod_cross_val_server, "cv_lda_ui",   updateData, modelos, "lda", codedioma)
+  callModule(mod_cross_val_server, "cv_qda_ui",   updateData, modelos, "qda", codedioma)
   
-  
-  #Validación Cruzada
-  callModule(mod_cv_knn_server,          "cv_knn_ui_1",           updateData, codedioma)
-  callModule(mod_cv_svm_server,          "cv_svm_ui_1",           updateData, codedioma)
-  callModule(mod_cv_dt_server,           "cv_dt_ui_1",            updateData, codedioma)
-  callModule(mod_cv_rf_server,           "cv_rf_ui_1",            updateData, codedioma)
-  callModule(mod_cv_xgb_server,          "cv_xgb_ui_1",           updateData, codedioma)
-  callModule(mod_cv_rlr_server,          "cv_rlr_ui_1",           updateData, codedioma)
-  callModule(mod_cv_bayes_server,        "cv_bayes_ui_1",         updateData, codedioma)
-  callModule(mod_cv_rl_server,           "cv_rl_ui_1",            updateData, codedioma)
-  callModule(mod_cv_boost_server,        "cv_boost_ui_1",         updateData, codedioma)
-  callModule(mod_cv_lda_server,          "cv_lda_ui_1",           updateData, codedioma)
-  callModule(mod_cv_qda_server,          "cv_qda_ui_1",           updateData, codedioma)
-  callModule(mod_cross_validation_server,"cross_validation_ui_1", updateData, codedioma)
+  # Evaluacion
+  callModule(mod_evaluacion_server, "evaluacion_ui_1", updateData, modelos, codedioma)
 
-  #Predicción de Individuos Nuevos
-  callModule(mod_ind_nuevos_server,     "ind_nuevos_ui_1",  newCases, updateData2, codedioma)
+  # Predicción de Individuos Nuevos
+  callModule(mod_ind_nuevos_server, "ind_nuevos_ui_1",  newCases, updateData2, codedioma)
   
 }
