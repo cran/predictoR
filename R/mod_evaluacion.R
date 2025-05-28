@@ -93,6 +93,7 @@ mod_evaluacion_server <- function(input, output, session, updateData, modelos, c
     lng <- codedioma$idioma
     vci <- modelosrv$i
     tt  <- modo$tt
+    cat <- input$sel_cat
     
     df <- data.frame()
     for (modelo in names(modelos)) {
@@ -157,22 +158,29 @@ mod_evaluacion_server <- function(input, output, session, updateData, modelos, c
         for (k in names(x)) {
           if(tt) {
             prob <- x[[k]][[vci]]$prob$prediction[, cat]
-            test <- datos[grupos[[vci]][["test"]], variable] 
-            roc.data <- roc.values(prob, test)
-            roc.area <- ROC.area(prob, test)
+            test <- datos[grupos[[vci]][["test"]], variable]
+            roc <- roc.values(prob, test)
+            roc.data <- roc$ROC
+            roc.area <- roc$AUC
           } else {
             if(is.numeric(vci)) {
               vc <- paste0("VC", vci)
               auxcalc  <- calc_g_prob(x[[k]][[vc]], grupos[[vci]])
-              roc.data <- roc.values(auxcalc[[1]][, cat], datos[, variable])
-              roc.area <- ROC.area(auxcalc[[1]][, cat], datos[, variable])
+              prob <- auxcalc[[1]][, cat]
+              test <- datos[, variable]
+              roc <- roc.values(prob, test)
+              roc.data <- roc$ROC
+              roc.area <- roc$AUC
             } else {
               auxcalc  <- calc_cross_prob(x[[k]], updateData$grupos)
-              roc.data <- roc.values(auxcalc[[1]][, cat], datos[, variable])
-              roc.area <- ROC.area(auxcalc[[1]][, cat], datos[, variable])
+              prob <- auxcalc[[1]][, cat]
+              test <- datos[, variable]
+              roc <- roc.values(prob, test)
+              roc.data <- roc$ROC
+              roc.area <- roc$AUC
             }
           }
-          nuevo       <- list(
+          nuevo <- list(
             type = "line", data = roc.data, name = k,
             tooltip = list(formatter = e_JS(paste0(
               "function(params) {",
@@ -187,7 +195,7 @@ mod_evaluacion_server <- function(input, output, session, updateData, modelos, c
     }
     
     res <- e_charts() |> e_list(list(
-      xAxis = list(show = TRUE, inverse = TRUE),
+      xAxis = list(show = TRUE),
       yAxis = list(show = TRUE),
       series = series
     )) |> e_show_loading() |> e_legend() |> 

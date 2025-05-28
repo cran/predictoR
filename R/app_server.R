@@ -38,8 +38,7 @@ app_server <- function(input, output, session) {
                    numTT              = NULL, 
                    grupos             = NULL)
   
-  codedioma <- rv(idioma             = NULL,
-                  code = list())
+  codedioma <- rv(idioma = NULL, code = list())
   
   updateData2 <- rv(datos              = NULL, 
                     originales         = NULL, 

@@ -509,16 +509,33 @@ e_eval_bar <- function(df, titulos = c("Modelo", "Precision")) {
 
 # Obtiene los puntos para graficar la curva ROC
 roc.values <- function(score, clase, n = 20) {
-  res <- lapply(seq(1, 0, length = n), function(umbral) {
-    FN <- length(which(score[clase == levels(clase)[2]] < umbral))
-    TP <- length(which(score[clase == levels(clase)[2]] >= umbral))
-    FP <- length(which(score[clase == levels(clase)[1]] >= umbral))
-    TN <- length(which(score[clase == levels(clase)[1]] < umbral))
+  auc <- 0
+  res <- list()
+  
+  for (umbral in seq(1, 0, length = n)) {
+    predicciones <- ifelse(score >= umbral, levels(clase)[1], levels(clase)[2])
     
-    c(TP / ( FN + TP ), TN / ( FP + TN ), umbral)
-  })
-  res <- append(list(c(0, 1, 1)), res)
-  res[!duplicated(res)]
+    TP <- sum(clase == levels(clase)[1] & predicciones == levels(clase)[1])
+    FP <- sum(clase == levels(clase)[2] & predicciones == levels(clase)[1])
+    TN <- sum(clase == levels(clase)[2] & predicciones == levels(clase)[2])
+    FN <- sum(clase == levels(clase)[1] & predicciones == levels(clase)[2])
+    
+    FPR <- FP / (FP + TN)
+    TPR <- TP / (TP + FN)
+    res <- append(res, list(c(FPR, TPR, umbral)))
+    
+    if(umbral == 1) {
+      FPA <- FPR
+      TPA <- TPR
+    } else {
+      auc <- auc + ((FPR - FPA) * (TPR + TPA) / 2)
+      FPA <- FPR
+      TPA <- TPR
+    }
+  }
+  res <- append(list(c(0, 0, 1)), res)
+  res <- res[!duplicated(res)]
+  return(list("ROC" = res, "AUC" = auc))
 }
 
 # Obtiene todas las precisiones globales promedio train-test.

@@ -52,13 +52,12 @@ mod_poder_pred_ui <- function(id){
 #' poder_pred Server Functions
 #'
 #' @noRd 
-mod_poder_pred_server <- function(id,       updateData, codedioma){
-  moduleServer( id, function(input, output, session){
+mod_poder_pred_server <- function(id, updateData, codedioma){
+  moduleServer( id, function(input, output, session) {
     ns <- session$ns
     
-    
     # Update on load testing data
-    observeEvent(updateData$datos.prueba, {
+    observeEvent(updateData$variable.predecir, {
       variable     <- updateData$variable.predecir
       datos        <- updateData$datos
       nombres      <- colnames.empty(var.numericas(datos))
@@ -110,8 +109,6 @@ mod_poder_pred_server <- function(id,       updateData, codedioma){
       })
     })
     
-
-    
     #Pairs Plot Output
     output$plot_pairs_poder <- renderPlot({
       input$run_pp
@@ -151,7 +148,6 @@ mod_poder_pred_server <- function(id,       updateData, codedioma){
       })
       
     })
-    
     
     # Hace el gráfico de densidad de variables númericas
     output$plot_density_poder <- renderEcharts4r({

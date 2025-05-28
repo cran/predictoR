@@ -165,15 +165,15 @@ app_ui <- function(request) {
                   mod_poder_pred_ui("poder_pred_ui_1")),
           
           ###################### Entrenamiento-Prueba #########################
-          tabItem(tabName = "knn", mod_train_test_ui("tt_knn_ui", "knn")),   
+          tabItem(tabName = "knn", mod_train_test_ui("tt_knn_ui", "knn")),
           tabItem(tabName = "svm", mod_train_test_ui("tt_svm_ui", "svm")),
           tabItem(tabName = "tree", mod_train_test_ui("tt_tree_ui", "tree")),
           tabItem(tabName = "rndf", mod_train_test_ui("tt_rndf_ui", "rndf")),
-          tabItem(tabName = "boost", mod_train_test_ui("tt_boost_ui", "boost")),       
+          tabItem(tabName = "boost", mod_train_test_ui("tt_boost_ui", "boost")),
           tabItem(tabName = "xgb", mod_train_test_ui("tt_xgb_ui", "xgb")),
           tabItem(tabName = "bayes", mod_train_test_ui("tt_bayes_ui", "bayes")),
-          tabItem(tabName = "nnet", mod_train_test_ui("tt_nnet_ui", "nnet")),         
-          tabItem(tabName = "reg", mod_train_test_ui("tt_reg_ui", "reg")),      
+          tabItem(tabName = "nnet", mod_train_test_ui("tt_nnet_ui", "nnet")),
+          tabItem(tabName = "reg", mod_train_test_ui("tt_reg_ui", "reg")),
           tabItem(tabName = "regp", mod_train_test_ui("tt_regp_ui", "regp")), 
           tabItem(tabName = "lda", mod_train_test_ui("tt_lda_ui", "lda")),
           tabItem(tabName = "qda", mod_train_test_ui("tt_qda_ui", "qda")),
@@ -192,7 +192,7 @@ app_ui <- function(request) {
           tabItem(tabName = "cv_qda", mod_cross_val_ui("cv_qda_ui", "qda")),
           
           # Evaluación de Modelos
-          tabItem(tabName = "evaluar", mod_evaluacion_ui("evaluacion_ui_1")),  
+          tabItem(tabName = "evaluar", mod_evaluacion_ui("evaluacion_ui_1")),
           
           # Predicción Individuos Nuevos
           tabItem(tabName = "predNuevos", mod_ind_nuevos_ui("ind_nuevos_ui_1")), 

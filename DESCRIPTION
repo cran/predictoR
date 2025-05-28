@@ -1,7 +1,7 @@
 Package: predictoR
 Type: Package
 Title: Predictive Data Analysis System
-Version: 4.1.1
+Version: 4.1.5
 Authors@R: c(person(given = "Oldemar", family = "Rodriguez", role = c("aut", "cre"), email = "oldemar.rodriguez@ucr.ac.cr"),
             person(given = "Diego", family = "Jiménez", role = c("ctb", "prg")),
             person(given = "Andrés", family = "Navarro", role = c("ctb", "prg")))
@@ -9,7 +9,7 @@ Description: Perform a supervised data analysis on a database through a 'shiny' 
 License: GPL (>= 2)
 Imports: DT (>= 0.27), dplyr (>= 1.1.0), shiny (>= 1.7.4), golem (>=
         0.3.5), rlang (>= 1.0.6), loadeR (>= 1.0.1), config (>= 0.3.1),
-        glmnet (>= 4.1-6), traineR (>= 2.0.4), shinyjs (>= 2.1.0),
+        glmnet (>= 4.1-6), traineR (>= 2.2.0), shinyjs (>= 2.1.0),
         xgboost (>= 1.7.3.1), shinyAce (>= 0.4.2), echarts4r (>=
         0.4.4), htmltools (>= 0.5.4), rpart.plot (>= 3.1.1),
         colourpicker (>= 1.1.1), shinydashboard (>= 0.7.2),
@@ -21,10 +21,10 @@ BugReports: https://github.com/PROMiDAT/predictoR/issues
 RoxygenNote: 7.3.2
 Language: en-US
 NeedsCompilation: no
-Packaged: 2024-10-31 18:09:33 UTC; r583594
+Packaged: 2025-05-27 22:50:00 UTC; r583594
 Author: Oldemar Rodriguez [aut, cre],
   Diego Jiménez [ctb, prg],
   Andrés Navarro [ctb, prg]
 Maintainer: Oldemar Rodriguez <oldemar.rodriguez@ucr.ac.cr>
 Repository: CRAN
-Date/Publication: 2024-10-31 20:30:02 UTC
+Date/Publication: 2025-05-28 20:30:05 UTC

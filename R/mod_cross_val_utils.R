@@ -33,7 +33,7 @@ calc_cross_indices <-  function(x, i, tt = T) {
   
   for (k in names(x)) {
     if(tt) {
-      mc <- x[[k]][[i]]$mc
+      mc   <- x[[k]][[i]]$mc
     } else {
       mc <- 0
       if(is.numeric(i)) {

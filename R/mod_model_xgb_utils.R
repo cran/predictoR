@@ -8,9 +8,6 @@
 #' @export e_xgb_importance
 #' @import echarts4r
 #' @import traineR
-#' @examples
-#' model <- traineR::train.xgboost(Species ~ ., data = iris, nrounds = 20)
-#' e_xgb_importance(model)
 #' 
 e_xgb_importance <- function(modelo, error = "Gain") {
   x   <- modelo$feature_names
