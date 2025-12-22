@@ -17,11 +17,6 @@ echarts4r plot
 \description{
 Var importance XGBoosting
 }
-\examples{
-model <- traineR::train.xgboost(Species ~ ., data = iris, nrounds = 20)
-e_xgb_importance(model)
-
-}
 \author{
 Joseline Quiros <joseline.quiros@promidat.com>
 }

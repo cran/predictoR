@@ -12,8 +12,8 @@
 #' \tabular{ll}{
 #' Package: \tab predictoR\cr
 #' Type: \tab Package\cr
-#' Version: \tab 4.1.5\cr
-#' Date: \tab 2025-05-27\cr
+#' Version: \tab 4.1.6\cr
+#' Date: \tab 2025-12-18\cr
 #' License: \tab GPL (>=2)\cr
 #' }
 #' @keywords package

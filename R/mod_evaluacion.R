@@ -157,7 +157,22 @@ mod_evaluacion_server <- function(input, output, session, updateData, modelos, c
       if(!is.null(x)) {
         for (k in names(x)) {
           if(tt) {
-            prob <- x[[k]][[vci]]$prob$prediction[, cat]
+            #prob <- x[[k]][[vci]]$prob$prediction[, cat]
+            #--
+            prob_raw <- x[[k]][[vci]]$prob$prediction
+            
+            # Normalizar estructura (xgb seguro)
+            if (is.vector(prob_raw)) {
+              prob_raw <- matrix(prob_raw, ncol = 1)
+            }
+            
+            if (is.data.frame(prob_raw)) {
+              prob_raw <- as.matrix(prob_raw)
+            }
+            
+            prob <- prob_raw[, cat]
+            
+            #--
             test <- datos[grupos[[vci]][["test"]], variable]
             roc <- roc.values(prob, test)
             roc.data <- roc$ROC
