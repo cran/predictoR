@@ -1,4 +1,4 @@
-29b09faac143a36b43d6c8e8bd1282ed *DESCRIPTION
+49dc7cd57d972c649f852f31a6e4ca38 *DESCRIPTION
 76f3810c37d5dc4051b701f836219c71 *NAMESPACE
 d57974f295f1b0d024f82219e5a98902 *R/app_config.R
 6556c71d0e829fbf5b903e19434e6689 *R/app_server.R
@@ -24,12 +24,12 @@ c0b1b1613b936d9ecaca8091305d227a *R/mod_model_svm_utils.R
 a45a3f7e32a803c92cbf61a6b072677d *R/mod_model_tree_fct.R
 b29fa530b4e90fa5814a308ae6a6da35 *R/mod_model_tree_utils.R
 491108f2da4e14d9d396eb387c5cd379 *R/mod_model_xgb_utils.R
-fa20680f43dd214483c1a6b2217a0f1d *R/mod_models_utils.R
+2979f07d83f01d143f771382d200252e *R/mod_models_utils.R
 588db902ce693cf9eae9ac4369e1b926 *R/mod_poder_pred.R
 59c0e49bdc48ea96f2e57172d5d1b9f2 *R/mod_poder_pred_fct.R
 7d45e92e6412a26bdf64aa9aa86bcc88 *R/mod_poder_pred_utils.R
 f1ec2d8ce70d31af74de6b0474112f68 *R/mod_train_test.R
-9bf2dce26ee1daf791cab417c8181f0a *R/predictoR.R
+245edc3e76b7c1b580f85749d89a3078 *R/predictoR.R
 8aab2a893489e4dd59e8dee89c8c3215 *R/run_app.R
 82643f3ac2b5c2d6d59a1f23f9923f27 *R/utils_global.R
 71fd5400fd31c3bab57dc49a8abdd039 *R/utils_input.R
@@ -60,6 +60,6 @@ c8d2bbbf07c2a4460d232bb9963fc2cb *man/e_boost_importance.Rd
 f853ec7d24aaed7ba584841a33d5dcb6 *man/e_rf_error.Rd
 2e4da1845e71d724905e438db782089c *man/e_rndf_importance.Rd
 2f19436558d6164b1deaafe25a159c24 *man/e_xgb_importance.Rd
-ddfdcef3e9729469035d753b2d90e540 *man/predictoR.Rd
+1bb3b5d85ba570ca9fc4bb94f4810983 *man/predictoR.Rd
 f002343af5365f34eb974eb06f4b3333 *man/run_app.Rd
 d0be389d35223b84463ac1142db58946 *man/voronoi_svm_plot.Rd
